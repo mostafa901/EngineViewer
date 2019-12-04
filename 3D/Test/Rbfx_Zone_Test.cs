@@ -4,7 +4,7 @@ using EngineViewer.Actions._3D.Animations;
 using EngineViewer.Actions._3D.RbfxUtility;
 using Urho3DNet;
 
-namespace EngineViewer.Controls.TypicalControls._3D.Test
+namespace EngineViewer._3D.Test
 {
 	class Engn_Zone_Test
 	{

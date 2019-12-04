@@ -1,5 +1,4 @@
 ﻿using EngineViewer.Actions._3D.Animations;
-using EngineViewer.Controls;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

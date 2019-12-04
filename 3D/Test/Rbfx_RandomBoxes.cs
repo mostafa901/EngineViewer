@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Urho3DNet;
 
-namespace EngineViewer.Actions._3D.Test
+namespace EngineViewer._3D.Test
 {
 	class Rbfx_RandomBoxes
 	{
@@ -32,9 +32,9 @@ namespace EngineViewer.Actions._3D.Test
 				Node boxNode = new Node(RootNode.Context);				
 				boxNode.Name = "Box" + i.ToString("00");
 				boxesNode.AddChild(boxNode, 0);
-				//boxNode.Position = new Vector3(Shared_Utility.Randoms.Next(0, 200f) - 100f, Shared_Utility.Randoms.Next(0, 200f) - 100f, Shared_Utility.Randoms.Next(0, 200f) - 100f);
-				// Orient using random pitch, yaw and roll Euler angles
-			//	boxNode.Rotation = new Quaternion(Shared_Utility.Randoms.Next(0, 360.0f), Shared_Utility.Randoms.Next(0, 360.0f), Shared_Utility.Randoms.Next(0, 360.0f));
+				boxNode.Position = new Vector3(Shared_Utility.Randoms.Next(0, 200f) - 100f, Shared_Utility.Randoms.Next(0, 200f) - 100f, Shared_Utility.Randoms.Next(0, 200f) - 100f);
+				//Orient using random pitch, yaw and roll Euler angles
+				boxNode.Rotation = new Quaternion(Shared_Utility.Randoms.Next(0, 360.0f), Shared_Utility.Randoms.Next(0, 360.0f), Shared_Utility.Randoms.Next(0, 360.0f));
 
 				var boxObject = boxNode.CreateComponent<StaticModel>();
 				boxObject.SetModel(boxModel);

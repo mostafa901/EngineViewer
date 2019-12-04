@@ -1,6 +1,4 @@
 ﻿using EngineViewer.Actions._3D.RbfxUtility;
-using EngineViewer.Controls;
-using EngineViewer.Controls.TypicalControls._3D;
 using System;
 using System.Diagnostics;
 using System.IO;

@@ -22,10 +22,6 @@ using System.Windows.Shapes;
 using Urho3DNet;
 using Application = Urho3DNet.Application;
 using Color = Urho3DNet.Color;
-using EngineViewer.Controls.TypicalControls._3D.Test;
-using EngineViewer.Actions._3D.RbfxUtility;
-using EngineViewer.Actions._3D.UI;
-using EngineViewer.Actions._3D;
 
 namespace EngineViewer.Actions._3D.RbfxUtility
 {

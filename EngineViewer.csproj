@@ -22,7 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -51,9 +51,9 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-    <Reference Include="Urho3DNet, Version=0.0.3.0, Culture=neutral, PublicKeyToken=d6f54bff1c5eeecd, processorArchitecture=AMD64">
+    <Reference Include="Urho3DNet, Version=0.0.3.0, Culture=neutral, PublicKeyToken=152063e02fcde301, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Downloaded_Library\Source\rbfx32\rbfx\cmake-build\bin\Debug\Urho3DNet.dll</HintPath>
+      <HintPath>..\..\..\Downloaded_Library\Source\rbfx\cmake-build\bin\Debug\Urho3DNet.dll</HintPath>
     </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="WindowsFormsIntegration" />
@@ -175,17 +175,15 @@
     <Content Include="..\..\Downloaded_Library\Source\IfcConvert-master-9ad68db-win64\IfcConvert.exe">
       <Link>Import\IfcConvert.exe</Link>
     </Content>
-    <None Include="..\..\Downloaded_Library\Source\rbfx32\rbfx\cmake-build\bin\Debug\Urho3D.dll">
-      <Link>Urho3D.dll</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="..\..\Downloaded_Library\Source\rbfx32\rbfx\cmake-build\bin\Debug\Urho3D.pdb">
-      <Link>Urho3D.pdb</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <Content Include="..\packages\UrhoSharp.Tools.1.8.93\Tools\Win64\AssetImporter_Win64.exe">
       <Link>Import\AssetImporter_Win64.exe</Link>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Shared_Utility\PrjShared_Utility\PrjShared_Utility\PrjShared_Utility.csproj">
+      <Project>{bad7aeee-c009-4bd3-bdc4-4bab5dc26b91}</Project>
+      <Name>PrjShared_Utility</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

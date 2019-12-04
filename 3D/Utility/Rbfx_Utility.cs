@@ -4,7 +4,6 @@ using System;
 using System.Linq;
 using Urho3DNet;
 using EngineViewer.Actions._3D.RbfxUtility;
-using EngineViewer.Controls;
 using System.Diagnostics;
 
 namespace EngineViewer.Actions._3D.RbfxUtility

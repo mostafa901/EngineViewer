@@ -1,10 +1,11 @@
-﻿using EngineViewer.Actions._3D.Animations;
+﻿using EngineViewer._3D.Test;
+using EngineViewer.Actions._3D.Animations;
 using EngineViewer.Actions._3D.Models;
 using EngineViewer.Actions._3D.RbfxUtility;
 using EngineViewer.Actions._3D.UI;
-using EngineViewer.Controls.TypicalControls._3D.Test;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -16,14 +17,14 @@ namespace EngineViewer
 {
 	public class Engn_Scene
 	{
-		 
+
 		public Engn_Scene()
 		{
 
 		}
 		public void Load(IntPtr engineHandle)
 		{
-			 
+
 			Task.Run(() =>
 			{
 				DefaultScene.Parent = engineHandle;
@@ -69,7 +70,7 @@ namespace EngineViewer
 		{
 			var currentDir = @"D:\Revit_API\Downloaded_Library\Source\rbfx\cmake-build\bin\Data";
 			engineParameters_[Urho3D.EpFullScreen] = false;
-			engineParameters_[Urho3D.EpExternalWindow] = Parent;
+			//engineParameters_[Urho3D.EpExternalWindow] = Parent;
 			engineParameters_[Urho3D.EpWindowResizable] = true;
 			engineParameters_[Urho3D.EpWindowWidth] = 1200;
 			engineParameters_[Urho3D.EpWindowHeight] = 800;
@@ -88,7 +89,9 @@ namespace EngineViewer
 			string ResDir = @"./Resources/3D";
 			Context.Cache.AddResourceDir(ResDir);
 			Context.Cache.AddResourceDir(@"c:\windows\fonts");
+			Context.Cache.AddResourceDir(@"D:\Revit_API\Downloaded_Library\Source\rbfx\bin\CoreData");
 			Context.UI.Cursor = new Urho3DNet.Cursor(Context);
+
 
 			// Scene
 			scene = new Scene(Context);
@@ -104,21 +107,27 @@ namespace EngineViewer
 			viewport.Scene = scene;
 			viewport.Camera = cam.camera;
 			Context.Renderer.SetViewport(0, viewport);
+		
+			Context.Renderer.LoadXml("RenderPaths/ForwardHWDepth.xml");
 
-			// Background
-			Context.Renderer.DefaultZone.FogColor = new Color(.1f, .1f, .1f, .0f);
-
+			/// not sure how setclipplane works
+			//Graphics.SetClipPlane(true, Plane.Up, new Matrix3x4(Vector3.Zero, Quaternion.IDENTITY, 200f)); 
+			cam.camera.ClipPlane = new Plane(Vector3.Up, new Vector3(0, 1, 0));
+#if false
 			var rp = viewport.RenderPath;
+			
 			for (uint i = 0; i < rp.Commands.Count; i++)
 			{
 				var cmd = rp.GetCommand(i);
 				if (cmd.Type == RenderCommandType.CmdClear)
 				{
-					cmd.UseFogColor = true;
+					//<command type="clear" tag="TagName" enabled="true|false" color="r g b a|fog" depth="x" stencil="y" output="viewport|RTName" face="0|1|2|3|4|5" depthstencil="DSName" />
+					cmd.UseFogColor = false;
 					cmd.ClearColor = new Color(.2f, 0.25f, 0.3f, .0f);
+					
 				}
-			}
-
+			} 
+#endif
 
 			//Plan
 			//we don't to set wireplan to rootnode, as we need it for any root node that can be created later
@@ -145,6 +154,8 @@ namespace EngineViewer
 
 			//Create Root Components for all models
 			RootNode = scene.CreateChild("RootNode");
+
+			new Rbfx_RandomBoxes(RootNode);
 
 			//setup Menu			
 			uiMenu = new UIMenu(RootNode, Selection);
@@ -174,11 +185,11 @@ namespace EngineViewer
 				//invoke any actions in the list
 				if (Actions.Count > 0)
 				{
-					var runningactions = Actions.ToList();
+					var runningActions = Actions.ToList();
 					Actions.Clear();
-					for (int i = 0; i < runningactions.Count; i++)
+					for (int i = 0; i < runningActions.Count; i++)
 					{
-						runningactions[i].Invoke();
+						runningActions[i].Invoke();
 					}
 				}
 
@@ -192,6 +203,7 @@ namespace EngineViewer
 
 				DisplayInfoText(hoverselected);
 			});
+
 		}
 
 #if false

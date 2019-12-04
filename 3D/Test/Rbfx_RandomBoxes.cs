@@ -16,8 +16,8 @@ namespace EngineViewer.Actions._3D.Test
 			var boxesNode = RootNode.CreateChild("Boxes");
 
 			const int numObjects = 2000;
-			var boxModel = RootNode.Cache.GetResource<Urho3DNet.Model>("Models/Box.mdl");
-			var boxMaterial = RootNode.Cache.GetResource<Material>("Materials/Stone.xml");
+			var boxModel = RootNode.Context.Cache.GetResource<Urho3DNet.Model>("Models/Box.mdl");
+			var boxMaterial = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");
 			//var boxMaterial = new Material(RootNode.Context);
 			//boxMaterial.SetShaderParameter("MatDiffColor", Color.Red);
 
@@ -32,9 +32,9 @@ namespace EngineViewer.Actions._3D.Test
 				Node boxNode = new Node(RootNode.Context);				
 				boxNode.Name = "Box" + i.ToString("00");
 				boxesNode.AddChild(boxNode, 0);
-				boxNode.Position = new Vector3(Shared_Utility.Randoms.Next(0, 200f) - 100f, Shared_Utility.Randoms.Next(0, 200f) - 100f, Shared_Utility.Randoms.Next(0, 200f) - 100f);
+				//boxNode.Position = new Vector3(Shared_Utility.Randoms.Next(0, 200f) - 100f, Shared_Utility.Randoms.Next(0, 200f) - 100f, Shared_Utility.Randoms.Next(0, 200f) - 100f);
 				// Orient using random pitch, yaw and roll Euler angles
-				boxNode.Rotation = new Quaternion(Shared_Utility.Randoms.Next(0, 360.0f), Shared_Utility.Randoms.Next(0, 360.0f), Shared_Utility.Randoms.Next(0, 360.0f));
+			//	boxNode.Rotation = new Quaternion(Shared_Utility.Randoms.Next(0, 360.0f), Shared_Utility.Randoms.Next(0, 360.0f), Shared_Utility.Randoms.Next(0, 360.0f));
 
 				var boxObject = boxNode.CreateComponent<StaticModel>();
 				boxObject.SetModel(boxModel);

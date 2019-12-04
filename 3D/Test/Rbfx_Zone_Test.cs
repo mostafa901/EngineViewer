@@ -2,7 +2,6 @@
 
 using EngineViewer.Actions._3D.Animations;
 using EngineViewer.Actions._3D.RbfxUtility;
-using Shared_Utility;
 using Urho3DNet;
 
 namespace EngineViewer.Controls.TypicalControls._3D.Test

@@ -18,8 +18,8 @@ namespace EngineViewer.Actions._3D.Models
 			planeNode = scene.CreateChild("Plane");
 			planeNode.SetScale(new Vector3(100, 1, 100));
 			plane = planeNode.CreateComponent<StaticModel>();
-			plane.SetModel(scene.Cache.GetResource<Urho3DNet.Model>("Models/Plane.mdl"));
-			plane.SetMaterial(scene.Cache.GetResource<Material>("Materials/StoneTiled.xml"));			
+			plane.SetModel(scene.Context.Cache.GetResource<Urho3DNet.Model>("Models/Plane.mdl"));
+			plane.SetMaterial(scene.Context.Cache.GetResource<Material>("Materials/StoneTiled.xml"));			
 		}
 	}
 }

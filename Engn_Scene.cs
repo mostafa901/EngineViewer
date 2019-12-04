@@ -3,7 +3,6 @@ using EngineViewer.Actions._3D.Models;
 using EngineViewer.Actions._3D.RbfxUtility;
 using EngineViewer.Actions._3D.UI;
 using EngineViewer.Controls.TypicalControls._3D.Test;
-using Shared_Utility;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,7 +10,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Urho3DNet;
-using Utility.IO;
 using static EngineViewer.Actions._3D.UI.UIMenu;
 
 namespace EngineViewer
@@ -57,7 +55,7 @@ namespace EngineViewer
 
 		protected override void Dispose(bool disposing)
 		{
-			Engine.Renderer.SetViewport(0, null);
+			Context.Renderer.SetViewport(0, null);
 			//Enable disposal of viewport by making it unreferenced by engine.
 			//cam.camera.Dispose();
 			//viewport.Dispose();
@@ -84,13 +82,13 @@ namespace EngineViewer
 
 		public override void Start()
 		{
-			UI.Input.SetMouseVisible(true);
+			Context.Input.SetMouseVisible(true);
 
 			//SetupResources Location
 			string ResDir = @"./Resources/3D";
-			Cache.AddResourceDir(ResDir);
-			Cache.AddResourceDir(@"c:\windows\fonts");
-			this.UI.Cursor = new Urho3DNet.Cursor(Context);
+			Context.Cache.AddResourceDir(ResDir);
+			Context.Cache.AddResourceDir(@"c:\windows\fonts");
+			Context.UI.Cursor = new Urho3DNet.Cursor(Context);
 
 			// Scene
 			scene = new Scene(Context);
@@ -105,10 +103,10 @@ namespace EngineViewer
 			viewport = new Viewport(Context);
 			viewport.Scene = scene;
 			viewport.Camera = cam.camera;
-			Engine.Renderer.SetViewport(0, viewport);
+			Context.Renderer.SetViewport(0, viewport);
 
 			// Background
-			Engine.Renderer.DefaultZone.FogColor = new Color(.1f, .1f, .1f, .0f);
+			Context.Renderer.DefaultZone.FogColor = new Color(.1f, .1f, .1f, .0f);
 
 			var rp = viewport.RenderPath;
 			for (uint i = 0; i < rp.Commands.Count; i++)
@@ -161,14 +159,14 @@ namespace EngineViewer
 				onUnSelect();
 
 				//camera movement
-				cam.FirstPersonCamera(this, this.Time.TimeStep, 10, Selection?.SelectedModel?.Node);
+				cam.FirstPersonCamera(this, Context.Time.TimeStep, 10, Selection?.SelectedModel?.Node);
 
 				//CheckSelection
 				var hoverselected = Selection.SelectGeometry(this, scene, cam);
 				uiMenu.Selection = Selection;
 				uiMenu.RootNode = RootNode;
 
-				if (scene.Input.GetMouseButtonPress(Urho3DNet.MouseButton.MousebLeft))
+				if (Context.Input.GetMouseButtonPress(Urho3DNet.MouseButton.MousebLeft))
 				{
 					touraroundboxes(Selection.SelectedModel);
 				}
@@ -184,7 +182,7 @@ namespace EngineViewer
 					}
 				}
 
-				if (scene.Input.GetMouseButtonClick(Urho3DNet.MouseButton.MousebRight))
+				if (Context.Input.GetMouseButtonClick(Urho3DNet.MouseButton.MousebRight))
 				{
 					if (Selection.SelectedModel != null)
 					{
@@ -196,11 +194,12 @@ namespace EngineViewer
 			});
 		}
 
+#if false
 		private void CreateCustomShape()
 		{
 			var geonode = RootNode.CreateChild("GeoNode");
 			var geom = geonode.CreateComponent<CustomGeometry>();
-			var mat = RootNode.Cache.GetResource<Material>("Materials/Stone.xml");
+			var mat = Context.Cache.GetResource<Material>("Materials/Stone.xml");
 			//	mat.SetShaderParameter("MatDiffColor", Color.Gray);
 			//	mat.Occlusion = true;
 
@@ -231,12 +230,13 @@ namespace EngineViewer
 			geonode.Rotate(new Quaternion(90, 0.0f, 0));
 		}
 
+#endif
 		Window infowindow = null;
 
 		private void SetupInfoWindow()
 		{
 			//info text
-			infowindow = this.UI.Root.CreateChild(nameof(Window)) as Window;
+			infowindow = Context.UI.Root.CreateChild(nameof(Window)) as Window;
 			// Set Window size and layout settings
 			infowindow.MinSize = new IntVector2(50, 20);
 			infowindow.SetLayout(LayoutMode.LmVertical, 6, new IntRect(6, 6, 6, 6));
@@ -257,7 +257,7 @@ namespace EngineViewer
 			{
 				var infotext = infowindow.GetChild("InfoText") as Text;
 				infowindow.SetVisible(true);
-				infowindow.Position = Input.MousePosition + new IntVector2(10, 10);
+				infowindow.Position = Context.Input.MousePosition + new IntVector2(10, 10);
 				string todisplay = hoverselected.Node.Name;
 
 				var cusComponent = hoverselected.Node.GetComponent<CustomNodeComponent>();
@@ -269,7 +269,9 @@ namespace EngineViewer
 				{
 					if (cusComponent.Info == null || cusComponent.Info.Count == 0)
 					{
-						cusComponent.Info = new List<data>().JDeserializemyData(cusComponent.Vmap);
+#if false
+						cusComponent.Info = new List<data>().JDeserializemyData(cusComponent.Vmap); 
+#endif
 					}
 				}
 				if (cusComponent.Info != null)
@@ -307,6 +309,7 @@ namespace EngineViewer
 #endif
 		}
 		public static List<Action> Actions = new List<Action>();
+#if false
 		private async void DisplaceAll(Node selected, string name)
 		{
 			var pos = selected.Position;
@@ -349,6 +352,7 @@ namespace EngineViewer
 
 			}
 		}
+
 
 		void CreateModelfromScratch()
 		{
@@ -429,7 +433,7 @@ namespace EngineViewer
 			sm.SetModel(fromScratchModel);
 			node.CreateComponent<RotateObject>();
 		}
-
+#endif
 		void onUnSelect()
 		{
 			if (Selection.SelectedModel == null)

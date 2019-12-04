@@ -13,7 +13,7 @@ namespace EngineViewer.Actions._3D.RbfxUtility
 		public static Material SetMaterialFromColor(Color color, bool unlit = true)
 		{
 			var material = new Material(DefaultScene.scene.Context);
-			var cache = DefaultScene.scene.Cache;
+			var cache = DefaultScene.scene.Context.Cache;
 			float tolerance = 0.001f;
 			if (unlit)
 				material.SetTechnique(0, Math.Abs(color.ToVector4().W - 1f) < tolerance ? cache.GetResource<Technique>("Textures/NoTextureUnlit.xml") : cache.GetResource<Technique>("Textures/NoTextureUnlitAlpha.xml"), MaterialQuality.QualityMedium, 1);
@@ -36,7 +36,7 @@ namespace EngineViewer.Actions._3D.RbfxUtility
 			{
 				if (_SelectedMaterial == null && DefaultScene.scene!= null)
 				{
-					_SelectedMaterial = DefaultScene.scene.Cache.GetResource<Material>("Materials/Colored.xml");
+					_SelectedMaterial = DefaultScene.scene.Context.Cache.GetResource<Material>("Materials/Colored.xml");
 				}
 				return _SelectedMaterial;
 			}

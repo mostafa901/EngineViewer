@@ -1,7 +1,6 @@
 ﻿
 
 
-using Shared_Utility;
 using Urho3DNet;
 
 namespace EngineViewer.Actions._3D.Animations
@@ -14,7 +13,7 @@ namespace EngineViewer.Actions._3D.Animations
 		public RotateObject(Context context) : base(context)
 		{
 			UpdateEventMask = UpdateEvent.UseUpdate;
-			rotationSpeed = new Vector3(Randoms.Next(0, 3), Randoms.Next(0, 3), Randoms.Next(0, 3));
+			//rotationSpeed = new Vector3(Randoms.Next(0, 3), Randoms.Next(0, 3), Randoms.Next(0, 3));
 		}
 
 		public override void Update(float timeStep)

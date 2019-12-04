@@ -20,7 +20,8 @@ namespace EngineViewer.Actions._3D
 			string path = "";
 			Dispatcher.CurrentDispatcher.Invoke(() =>
 			{
-				path = Utility.IO.system.LoadFile("xml|*.xml|ifc|*.ifc|Collada DAE|*.dae|mdl|*.mdl|FBX|*.fbx|DXF|*.dxf|3DS|*.3ds");
+				//path = Utility.IO.system.LoadFile("xml|*.xml|ifc|*.ifc|Collada DAE|*.dae|mdl|*.mdl|FBX|*.fbx|DXF|*.dxf|3DS|*.3ds");
+				path = "";
 
 				if (path.Contains("}") || path.Contains("{"))
 				{
@@ -56,7 +57,7 @@ namespace EngineViewer.Actions._3D
 			});
 			if (string.IsNullOrEmpty(path)) return null;
 
-			RootNode.Cache.AddResourceDir(Path.GetDirectoryName(path), 1);
+			RootNode.Context.Cache.AddResourceDir(Path.GetDirectoryName(path), 1);
 			
 			if (open)
 			{

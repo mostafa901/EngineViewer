@@ -31,7 +31,7 @@ namespace EngineViewer.Actions._3D.RbfxUtility
 
 		internal Ray GetRay()
 		{
-			return camera.GetScreenRay((float)camera.Input.MousePosition.X / camera.Graphics.Width, (float)camera.Input.MousePosition.Y / camera.Graphics.Height);
+			return camera.GetScreenRay((float)camera.Context.Input.MousePosition.X / camera.Context.Graphics.Width, (float)camera.Context.Input.MousePosition.Y / camera.Context.Graphics.Height);
 		}
 
 		public Node CameraNode { get; set; }
@@ -44,11 +44,11 @@ namespace EngineViewer.Actions._3D.RbfxUtility
 
 			const float mouseSensitivity = .1f;
 
-			if (app.UI.FocusElement != null)
+			if (app.Context.UI.FocusElement != null)
 				return;
-			var mouseMove = app.Input.MouseMove;
+			var mouseMove = app.Context.Input.MouseMove;
 
-			if (app.Input.GetMouseButtonDown(MouseButton.MousebRight))
+			if (app.Context.Input.GetMouseButtonDown(MouseButton.MousebRight))
 			{
 				Yaw = CameraNode.Rotation.YawAngle;
 				Pitch = CameraNode.Rotation.PitchAngle;
@@ -59,10 +59,10 @@ namespace EngineViewer.Actions._3D.RbfxUtility
 				cleanComponents();
 				CameraNode.Rotation = new Quaternion(Pitch, Yaw, 0);
 			}
-			if (app.Input.GetMouseButtonDown(MouseButton.MousebMiddle))
+			if (app.Context.Input.GetMouseButtonDown(MouseButton.MousebMiddle))
 			{
 				cleanComponents();
-				if (camera.Input.GetKeyDown(Key.KeyShift) && Selected != null)
+				if (camera.Context.Input.GetKeyDown(Key.KeyShift) && Selected != null)
 				{
 					//todo: not working correctly
 
@@ -79,35 +79,35 @@ namespace EngineViewer.Actions._3D.RbfxUtility
 				}
 			}
 
-			if (app.Input.MouseMoveWheel != 0)
+			if (app.Context.Input.MouseMoveWheel != 0)
 			{
 				cleanComponents();
-				CameraNode.Translate(new Vector3(0, 0, 1) * app.Input.MouseMoveWheel * moveSpeed);
+				CameraNode.Translate(new Vector3(0, 0, 1) * app.Context.Input.MouseMoveWheel * moveSpeed);
 			}
 
 			int scale = 1;
-			if (app.Input.GetKeyDown(Key.KeyCtrl))
+			if (app.Context.Input.GetKeyDown(Key.KeyCtrl))
 			{
 				scale = 3;
 			}
 			else scale = 1;
 
-			if (app.Input.GetKeyDown(Key.KeyW))
+			if (app.Context.Input.GetKeyDown(Key.KeyW))
 			{
 				cleanComponents();
 				CameraNode.Translate(new Vector3(0, 0, 1) * moveSpeed * timeStep * scale);
 			}
-			if (app.Input.GetKeyDown(Key.KeyS))
+			if (app.Context.Input.GetKeyDown(Key.KeyS))
 			{
 				cleanComponents();
 				CameraNode.Translate(-new Vector3(0, 0, 1) * moveSpeed * timeStep * scale);
 			}
-			if (app.Input.GetKeyDown(Key.KeyA))
+			if (app.Context.Input.GetKeyDown(Key.KeyA))
 			{
 				cleanComponents();
 				CameraNode.Translate(-new Vector3(1, 0, 0) * moveSpeed * timeStep * scale);
 			}
-			if (app.Input.GetKeyDown(Key.KeyD))
+			if (app.Context.Input.GetKeyDown(Key.KeyD))
 			{
 				cleanComponents();
 				CameraNode.Translate(new Vector3(1, 0, 0) * moveSpeed * timeStep * scale);

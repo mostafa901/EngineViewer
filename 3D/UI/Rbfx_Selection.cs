@@ -16,14 +16,14 @@ public	class Engn_Selection
 
 		public StaticModel SelectGeometry(Application app, Scene scene, Engn_Camera cam)
 		{
-			if (app.UI.Cursor.IsVisible())
+			if (app.Context.UI.Cursor.IsVisible())
 			{
 				//Select element
 				Vector3 hitposition;
 				Drawable model;
 
 				Rbfx_Utility.Raycast(scene, cam, 10000, out hitposition, out model);
-				if (app.Input.GetMouseButtonPress(MouseButton.MousebLeft))
+				if (app.Context.Input.GetMouseButtonPress(MouseButton.MousebLeft))
 				{
 					return HiLightSelected(model);
 				}

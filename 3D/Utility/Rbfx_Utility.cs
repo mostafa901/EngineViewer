@@ -48,7 +48,7 @@ namespace EngineViewer.Actions._3D.RbfxUtility
 
 				if (decal == null)
 				{
-					var cache = app.Cache;
+					var cache = app.Context.Cache;
 					decal = targetNode.CreateComponent<DecalSet>();
 					var decalse = new DecalSet(app.Context);
 

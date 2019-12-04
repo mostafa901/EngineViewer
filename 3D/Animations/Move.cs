@@ -1,7 +1,6 @@
 ﻿
 
 
-using Shared_Utility;
 using Urho3DNet;
 
 namespace EngineViewer.Actions._3D.Animations

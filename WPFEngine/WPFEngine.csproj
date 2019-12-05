@@ -17,7 +17,7 @@
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -50,9 +50,9 @@
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
     <Reference Include="UIAutomationProvider" />
-    <Reference Include="Urho3DNet, Version=0.0.3.0, Culture=neutral, PublicKeyToken=d6f54bff1c5eeecd, processorArchitecture=AMD64">
+    <Reference Include="Urho3DNet, Version=0.0.3.0, Culture=neutral, PublicKeyToken=a2a227328ed26d09, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Downloaded_Library\Source\rbfx32\rbfx\cmake-build\bin\Debug\Urho3DNet.dll</HintPath>
+      <HintPath>..\..\..\Downloaded_Library\Source\rbfx\cmake-build\bin\Debug\Urho3DNet.dll</HintPath>
     </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
@@ -110,11 +110,11 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\Downloaded_Library\Source\rbfx32\rbfx\cmake-build\bin\Debug\Urho3D.dll">
+    <None Include="..\..\..\Downloaded_Library\Source\rbfx\cmake-build\bin\Debug\Urho3D.dll">
       <Link>Urho3D.dll</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="..\..\..\Downloaded_Library\Source\rbfx32\rbfx\cmake-build\bin\Debug\Urho3D.pdb">
+    <None Include="..\..\..\Downloaded_Library\Source\rbfx\cmake-build\bin\Debug\Urho3D.pdb">
       <Link>Urho3D.pdb</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

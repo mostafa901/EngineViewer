@@ -1,4 +1,5 @@
-﻿using EngineViewer._3D.Test;
+﻿using EngineViewer._3D.TCP;
+using EngineViewer._3D.Test;
 using EngineViewer.Actions._3D.Animations;
 using EngineViewer.Actions._3D.Models;
 using EngineViewer.Actions._3D.RbfxUtility;
@@ -20,7 +21,7 @@ namespace EngineViewer
 
 		public Engn_Scene()
 		{
-
+            new Engine_Tcp();
 		}
 		public void Load(IntPtr engineHandle)
 		{

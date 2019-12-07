@@ -36,6 +36,11 @@ public	class Engn_Selection
 			return null;
 		}
 
+        public void  SetOriginalMaterial(Material mat)
+        {
+            Originalmat = mat;
+        }
+
 		StaticModel HiLightSelected(Drawable model)
 		{
 			if (SelectedModel != null)
@@ -51,6 +56,7 @@ public	class Engn_Selection
 				if (SelectedModel != null)
 				{
 					Originalmat = SelectedModel.GetMaterial();
+
 					SelectedModel.SetMaterial(Material_Ext.SelectedMaterial);
 
 					return SelectedModel;

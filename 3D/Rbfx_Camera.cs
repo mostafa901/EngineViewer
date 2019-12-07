@@ -134,6 +134,7 @@ namespace EngineViewer.Actions._3D.RbfxUtility
 
 		internal void LookAt(Vector3 position, int duration = 2)
 		{
+        
 			CameraNode.RemoveComponent(nameof(LookAtObject));
 			var look = CameraNode.CreateComponent<LookAtObject>();
 			if (look == null)
@@ -159,7 +160,7 @@ namespace EngineViewer.Actions._3D.RbfxUtility
 			var d = CameraNode.Position.DistanceToPoint(MoveTo);
 
 			MoveCamera(CameraNode.Position - (d - offset) * direction, 4);
-			Task.Run(() => LookAt(lookat, 1));
+			Task.Run(() => DefaultScene.Actions.Add(()=>  LookAt(lookat, 1)));
 		}
 	}
 

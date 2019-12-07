@@ -18,9 +18,8 @@ namespace EngineViewer.Actions._3D
 			string path = "";
 			Dispatcher.CurrentDispatcher.Invoke(() =>
 			{
-				//path = Utility.IO.system.LoadFile("xml|*.xml|ifc|*.ifc|Collada DAE|*.dae|mdl|*.mdl|FBX|*.fbx|DXF|*.dxf|3DS|*.3ds");
-				path = "";
-
+				path = Utility.IO.system.LoadFile("xml|*.xml|ifc|*.ifc|Collada DAE|*.dae|mdl|*.mdl|FBX|*.fbx|DXF|*.dxf|3DS|*.3ds");
+				
 				if (path.Contains("}") || path.Contains("{"))
 				{
 					DefaultScene.Actions.Add(() =>
@@ -65,7 +64,12 @@ namespace EngineViewer.Actions._3D
 			Node modelnode = RootNode.CreateChild("");
 			modelnode.LoadXML(path);
 			modelnode.Name = Path.GetFileNameWithoutExtension(path);
-						 
+            var stmodels = modelnode.GetComponents<StaticModel>(true).Cast<StaticModel>();
+            foreach (var stm in stmodels)
+            {
+                var comp = stm.Node.CreateComponent<CustomNodeComponent>();
+                comp.OriginalMaterial = stm.GetMaterial();
+            }
 			return modelnode;
 		}
 
@@ -103,7 +107,7 @@ namespace EngineViewer.Actions._3D
 			}
 
 			xmlFile.SaveFile(path);
-			//	Task.Run(async () => await cam.MoveToSelected(max, modelnode.Position, 50));
+			//Task.Run(async () => await cam.MoveToSelected(max, modelnode.Position, 50));
 		}
 
 	}

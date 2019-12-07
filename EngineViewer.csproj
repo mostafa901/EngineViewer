@@ -19,7 +19,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;EnginViewer</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x64</PlatformTarget>
@@ -38,7 +38,8 @@
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Reference Include="PrjShared_Utility">
+    <Reference Include="PrjShared_Utility, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\arch4hum_installer\prjutill\PrjShared_Utility.dll</HintPath>
     </Reference>
     <Reference Include="System" />
@@ -70,12 +71,14 @@
     <Compile Include="3D\Models\Rbfx_WirePlane.cs" />
     <Compile Include="3D\Rbfx_Camera.cs" />
     <Compile Include="3D\Rbfx_IO.cs" />
+    <Compile Include="3D\Serializable\Engine_Geometry.cs" />
     <Compile Include="3D\TCP\Engine_Tcp.cs" />
     <Compile Include="3D\Test\Rbfx_RandomBoxes.cs" />
     <Compile Include="3D\Test\Rbfx_Zone_Test.cs" />
     <Compile Include="3D\UI\Rbfx_Selection.cs" />
     <Compile Include="3D\UI\UIMenu.cs" />
-    <Compile Include="3D\Utility\BaseNodeComponent.cs" />
+    <Compile Include="3D\Utility\CustomNodeComponent.cs" />
+    <Compile Include="3D\Utility\Engine_Math.cs" />
     <Compile Include="3D\Utility\Material_ext.cs" />
     <Compile Include="3D\Utility\Node_Ext.cs" />
     <Compile Include="3D\Utility\Rbfx_Utility.cs" />
@@ -175,12 +178,17 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\Downloaded_Library\Source\IfcConvert-master-9ad68db-win64\IfcConvert.exe">
+    <None Include="..\..\Downloaded_Library\Source\IfcConvert-master-9ad68db-win64\IfcConvert.exe">
       <Link>Import\IfcConvert.exe</Link>
-    </Content>
-    <Content Include="..\packages\UrhoSharp.Tools.1.8.93\Tools\Win64\AssetImporter_Win64.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="..\packages\UrhoSharp.Tools.1.8.93\Tools\Win64\AssetImporter_Win64.exe">
       <Link>Import\AssetImporter_Win64.exe</Link>
-    </Content>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>call start robocopy *.* /R:0 "$(TargetDir)\" "D:\Revit_API\Projects\InSitU\InSitU\bin\Debug\\"</PostBuildEvent>
+  </PropertyGroup>
 </Project>

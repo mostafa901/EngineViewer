@@ -43,6 +43,7 @@ namespace EngineViewer._3D.Test
 				boxNode.CreateComponent<RotateObject>();
 				var basenode = boxNode.CreateComponent<CustomNodeComponent>();
 				basenode.OriginalPosition = new Vector3(5, 10, 5);
+                basenode.OriginalMaterial = boxMaterial;
 			}
 		}
 	}

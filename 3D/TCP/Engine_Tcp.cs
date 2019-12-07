@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Shared_Utility;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,17 +10,23 @@ using Utility.IO;
 
 namespace EngineViewer._3D.TCP
 {
-    class Engine_Tcp
+    public class Engine_Tcp
     {
+        public static bool Started;
+
+
         public Engine_Tcp()
         {
-
-            Utility.IO.Net.SetupServer(handelconnection, "127.0.0.1", 120);
+            Started = true;
+            Task.Run(async () =>
+            {
+                await Task.Delay(3000); //allow some time to get the window rendered
+                Net.SetupServer(handelconnection, "127.0.0.1", 120);
+            });
         }
-
-        async private void handelconnection(TcpClient tcpc)
+        async private void handelconnection(TcpClient _client)
         {
-            var client = (TcpClient)tcpc;
+            var client = _client;
             var nstream = client.GetStream();
 
             try
@@ -44,8 +51,8 @@ namespace EngineViewer._3D.TCP
                 }
                 catch (Exception ex)
                 {
-                    var js = new JStruct();
-                    js.JsModel = ex.ToString();
+                    var js = new JStructBase();
+                    js.JsMessage = ex.ToString();
                     client.SendByStream2(js.JSerialize().ToByteArray(Encoding.ASCII), Engine_Code.Failed);
                     Console.WriteLine($"[{DateTime.Now.ToString()}] Method Number not found");
                     Console.WriteLine(ex.ToString());
@@ -59,27 +66,6 @@ namespace EngineViewer._3D.TCP
             }
 
             client.Close();
-
-
-        }
-
-        public class JStruct
-        {
-            public string JsModel { get; internal set; }
-            public static JStruct FromServer(Net.ResponseBytes resp)
-            {
-                try
-                {
-                    var js = new JStruct().JDeserializemyData(Encoding.ASCII.GetString(System.IO.File.ReadAllBytes(resp.SavedDataPath)));
-                    return js;
-                }
-                catch (Exception ex)
-                {
-                    ex.Log("Error Reading json from Server");
-                }
-
-                return null;
-            }
         }
 
         private void ResolveTcpRequest(int code, TcpClient client, Net.ResponseBytes resp)
@@ -88,14 +74,27 @@ namespace EngineViewer._3D.TCP
             {
                 case Engine_Code.Message:
                     {
-                        var js = JStruct.FromServer(resp);
+                        var js = JStructBase.FromServer(resp);
+                        DefaultScene.Actions.Add(async () =>
+                        {
+                            new Urho3DNet.MessageBox(DefaultScene.scene.Context, js.JsMessage);
+                            js = new JStructBase();
+                            js.JsMessage = "Message Sent";
+                            client = await Net.TCP.Connect("127.0.0.1", 121);
+                            client?.SendByStream2(js.JSerialize().ToByteArray(Encoding.ASCII), Engine_Code.Received);
+                        });
+                        break;
+                    }
+                case Engine_Code.DrawGeometry:
+                    {
+                        var js = JStructBase.FromServer(resp);
+                        var geos = new List<Serializable.Engine_Geometry>().JDeserializemyData(js.JsData);
+
                         DefaultScene.Actions.Add(() =>
                         {
-                            new Urho3DNet.MessageBox(DefaultScene.scene.Context, js.JsModel);
-                            js = new JStruct();
-                            js.JsModel = "Message Sent";
-                            client.SendByStream2(js.JSerialize().ToByteArray(Encoding.ASCII), Engine_Code.Received);
+                            DefaultScene.Instance.CreateCustomShape2(geos);
                         });
+
                         break;
                     }
                 default:
@@ -108,6 +107,7 @@ namespace EngineViewer._3D.TCP
             public const int Failed = 0;
             public const int Received = 1;
             public const int Message = 2;
+            public const int DrawGeometry = 3;
         }
     }
 }

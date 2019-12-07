@@ -36,6 +36,7 @@ namespace EngineViewer.Actions._3D.RbfxUtility
 				if (_SelectedMaterial == null && DefaultScene.scene!= null)
 				{
 					_SelectedMaterial = DefaultScene.scene.Context.Cache.GetResource<Material>("Materials/Colored.xml");
+                     
 				}
 				return _SelectedMaterial;
 			}

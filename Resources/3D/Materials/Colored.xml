@@ -1,5 +1,5 @@
 ﻿<material>
 	<technique name="Techniques/NoTexture.xml" />
-	<parameter name="MatDiffColor" value="1 .28 0.28 1" />
+	<parameter name="MatDiffColor" value="1 .28 0.28 .2" />
 	<depthbias constant="-0.00001" slopescaled="0" />
 </material>

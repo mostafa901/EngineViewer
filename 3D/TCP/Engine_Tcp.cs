@@ -106,11 +106,11 @@ namespace EngineViewer._3D.TCP
             var client = await Net.TCP.Connect("127.0.0.1", 121, (c) =>
              {
                  c.SendByStream2(js.JSerialize().ToByteArray(Encoding.ASCII), Engine_Code.Received);
-                 File.AppendAllText(@"C:\Users\mostafa90\AppData\Local\Temp\test.txt",$"[{DateTime.Now.ToLongTimeString()}]:    Request Sent from Engine\r\n");
+                // File.AppendAllText(@"C:\Users\mostafa90\AppData\Local\Temp\test.txt",$"[{DateTime.Now.ToLongTimeString()}]:    Request Sent from Engine\r\n");
              });
              if(client==null)
              {
-                File.AppendAllText(@"C:\Users\mostafa90\AppData\Local\Temp\test.txt", $"[{DateTime.Now.ToLongTimeString()}]:    Receiver not Initialized\r\n");
+              //  File.AppendAllText(@"C:\Users\mostafa90\AppData\Local\Temp\test.txt", $"[{DateTime.Now.ToLongTimeString()}]:    Receiver not Initialized\r\n");
             }
         }
 

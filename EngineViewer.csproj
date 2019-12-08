@@ -67,6 +67,7 @@
     <Compile Include="3D\Animations\LookAt.cs" />
     <Compile Include="3D\Animations\Move.cs" />
     <Compile Include="3D\Animations\Rotator.cs" />
+    <Compile Include="3D\Extention\Vertex_EX.cs" />
     <Compile Include="3D\Models\Rbfx_Plan.cs" />
     <Compile Include="3D\Models\Rbfx_WirePlane.cs" />
     <Compile Include="3D\Rbfx_Camera.cs" />

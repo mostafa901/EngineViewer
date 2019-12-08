@@ -5,6 +5,7 @@ using EngineViewer.Actions._3D.Animations;
 using EngineViewer.Actions._3D.Models;
 using EngineViewer.Actions._3D.RbfxUtility;
 using EngineViewer.Actions._3D.UI;
+using Shared_Utility;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -90,7 +91,12 @@ namespace EngineViewer
             Selection = new Engn_Selection();
             SetupScene();
             SubscribeEvents();
+           
             InitializeTcpConnection();
+            if (runOnce == false)
+            {
+                RunOnce();
+            }
         }
 
         private void SubscribeEvents()
@@ -150,9 +156,21 @@ namespace EngineViewer
                 }
 
                 DisplayInfoText(hoverselected);
+               
             });
         }
-
+        bool runOnce = false;
+        public void RunOnce()
+        {
+            runOnce = true;
+            Task.Run(() =>
+            {
+                var js = new JStructBase();
+                js.JsMessage = "OK";
+                Engine_Tcp.SendRequestToClient(js);
+                 
+            });
+        }
         private void InitializeTcpConnection()
         {
             if (Engine_Tcp.Started == false)
@@ -260,13 +278,11 @@ namespace EngineViewer
         private void SetupResourcePaths()
         {
             //SetupResources Location
-            string ResDir = $@"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().EscapedCodeBase)}/Resources/3D";
-            ResDir.Log("CurrentPath");
-            Context.Cache.AddResourceDir(ResDir);
+            
             Context.Cache.AddResourceDir(@"c:\windows\fonts");
             Context.Cache.AddResourceDir(@"D:\Revit_API\Downloaded_Library\Source\rbfx\bin\CoreData");
             Context.UI.Cursor = new Urho3DNet.Cursor(Context);
-            
+
         }
 
         public void CreateCustomShape(List<List<string>> geos)
@@ -401,7 +417,7 @@ namespace EngineViewer
                         case Serializable.Engine_Geometry.PointType.Normal:
                             cusGeom.DefineNormal(new Vector3(gp.X, gp.Y, gp.Z));
                             break;
-                           
+
                         case Serializable.Engine_Geometry.PointType.Texture:
                             cusGeom.DefineTexCoord(new Vector2(gp.X, gp.Y));
                             break;
@@ -418,7 +434,7 @@ namespace EngineViewer
                 }
 
                 cusGeom.Commit();
-                
+
 
                 var modelnode = new Node(Context);
                 geonode.AddChild(modelnode);

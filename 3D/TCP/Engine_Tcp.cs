@@ -80,8 +80,7 @@ namespace EngineViewer._3D.TCP
                             new Urho3DNet.MessageBox(DefaultScene.scene.Context, js.JsMessage);
                             js = new JStructBase();
                             js.JsMessage = "Message Sent";
-                            client = await Net.TCP.Connect("127.0.0.1", 121);
-                            client?.SendByStream2(js.JSerialize().ToByteArray(Encoding.ASCII), Engine_Code.Received);
+                            SendRequestToClient(js);
                         });
                         break;
                     }
@@ -99,6 +98,19 @@ namespace EngineViewer._3D.TCP
                     }
                 default:
                     break;
+            }
+        }
+
+        async public static void SendRequestToClient(JStructBase js)
+        {
+            var client = await Net.TCP.Connect("127.0.0.1", 121, (c) =>
+             {
+                 c.SendByStream2(js.JSerialize().ToByteArray(Encoding.ASCII), Engine_Code.Received);
+                 File.AppendAllText(@"C:\Users\mostafa90\AppData\Local\Temp\test.txt",$"[{DateTime.Now.ToLongTimeString()}]:    Request Sent from Engine\r\n");
+             });
+             if(client==null)
+             {
+                File.AppendAllText(@"C:\Users\mostafa90\AppData\Local\Temp\test.txt", $"[{DateTime.Now.ToLongTimeString()}]:    Receiver not Initialized\r\n");
             }
         }
 

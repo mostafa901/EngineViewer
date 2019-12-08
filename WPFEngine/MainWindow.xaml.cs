@@ -36,7 +36,9 @@ namespace WPFEngine
 					{
 						using (var application = new DefaultScene(context))
 						{
-							application.Run();
+                            application.Context.Cache.AddResourceDir($"{App.LocaldllPath}/Resources/3D");
+
+                            application.Run();
 						}
 					}
 				});

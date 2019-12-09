@@ -361,9 +361,7 @@ namespace EngineViewer
                                 mat = new Material(Context);
                                 mat.SetShaderParameter("MatDiffColor", color);
                                 continue;
-                            }
-                            break;
-
+                            } 
                         case Serializable.Engine_Geometry.PointType.Vertex:
                             {
                                 var v = new Vector3(gp.X, gp.Y, gp.Z);
@@ -390,7 +388,7 @@ namespace EngineViewer
 
                 VertexBuffer vbtest = new VertexBuffer(Context);
                 vbtest.SetShadowed(true);
-                vbtest.SetSize(psarray.Length/12, VertexMask.MaskPosition |  VertexMask.MaskNormal | VertexMask.MaskTexcoord1 | VertexMask.MaskTangent, false);
+                vbtest.SetSize(positionPoints.Count, VertexMask.MaskPosition |  VertexMask.MaskNormal | VertexMask.MaskTexcoord1 | VertexMask.MaskTangent, false);
                 vbtest.SetData(psarray);
 
                 List<short> ind = new List<short>();
@@ -411,7 +409,7 @@ namespace EngineViewer
                 var geo = new Geometry(Context);
                 geo.SetVertexBuffer(0, vbtest);
                 geo.IndexBuffer = ib;
-                geo.SetDrawRange(PrimitiveType.TriangleList, 0, (uint)psarray.Length/12, true);
+                geo.SetDrawRange(PrimitiveType.TriangleList, 0, (uint)positionPoints.Count, true);
 
                 Model model = new Model(Context);
                 model.NumGeometries = 1;

@@ -92,12 +92,28 @@ namespace EngineViewer.Actions._3D.UI
                                 Selection.SelectedModel = null;
                                 ActionMenu = menuaction.none;
                             }
+
+                            if (ImGui.BeginMenu("CullMode"))
+                            {
+                                if (ImGui.MenuItem("Ccw"))
+                                {
+                                    Selection.SelectedModel.GetMaterial().CullMode = CullMode.CullCcw;
+                                    ActionMenu = menuaction.none;
+                                }
+                                if (ImGui.MenuItem("Cw"))
+                                {
+                                    Selection.SelectedModel.GetMaterial().CullMode = CullMode.CullCw;
+                                    ActionMenu = menuaction.none;
+                                }
+                                ImGui.EndMenu();
+                            }
+
                             if (ImGui.BeginMenu("Transparency"))
                             {
                                 if (ImGui.MenuItem("Set Transparent"))
                                 {
                                     var comp = Selection.SelectedModel.Node.GetComponent<CustomNodeComponent>(true);
-                                 
+
                                     Material transmap = new Material(Selection.SelectedModel.Node.Context);
                                     //transmap.SetTechnique(0, transmap.Context.Cache.GetResource<Technique>("Techniques/DiffVCol.xml"));
                                     transmap = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");
@@ -116,7 +132,7 @@ namespace EngineViewer.Actions._3D.UI
                                         Selection.SetOriginalMaterial(comp.OriginalMaterial);
                                     }
                                     ActionMenu = menuaction.none;
-                                    
+
                                 }
                                 ImGui.EndMenu();
                             }

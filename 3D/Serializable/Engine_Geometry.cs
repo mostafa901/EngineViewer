@@ -10,8 +10,8 @@ namespace EngineViewer.Serializable
 {
     public class Engine_Geometry
     {
-        public string Name { get; set; }
-        public Engine_Point Position { get; set; }
+        public string Name { get; set; } = "";
+        public Engine_Point Position { get; set; } 
         public List<Engine_Point> Engine_Points { get; set; }
         public Engine_Geometry()
         {

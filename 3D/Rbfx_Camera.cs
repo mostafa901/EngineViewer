@@ -61,11 +61,12 @@ namespace EngineViewer.Actions._3D.RbfxUtility
 			if (app.Context.Input.GetMouseButtonDown(MouseButton.MousebMiddle))
 			{
 				cleanComponents();
-				if (camera.Context.Input.GetKeyDown(Key.KeyShift) && Selected != null)
+				if (camera.Context.Input.GetKeyDown(Key.KeyShift))
 				{
-					//todo: not working correctly
-
-					CameraNode.RotateAround(Selected.Position, new Quaternion(0, mouseMove.X, 0), TransformSpace.TsWorld);
+                    //todo: not working correctly
+                    var ray = camera.GetScreenRay((float)camera.Graphics.Width / 2, (float)camera.Graphics.Height / 2);
+                    
+					CameraNode.RotateAround(ray.Origin, new Quaternion(0, mouseMove.X, 0), TransformSpace.TsWorld);
 					Pitch = Urho3DNet.MathDefs.Clamp(CameraNode.Rotation.PitchAngle, -90, 90);
 
 					CameraNode.Rotation = new Quaternion(Pitch, CameraNode.Rotation.YawAngle, 0);

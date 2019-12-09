@@ -151,7 +151,7 @@ namespace EngineViewer
                     //  string imp = @"D:\Program Files\Autodesk\Revit 2018\Testvertex_trans.json";
                     //  var verte = new List<List<string>>().JDeserializemyData(System.IO.File.ReadAllText(imp));
 
-                    string imp = @"D:\Program Files\Autodesk\Revit 2018\test.json";
+                    string imp = @"D:\Revit_API\Projects\InSitU\TestFiles\test.json";
                     var verte = new List<Serializable.Engine_Geometry>().JDeserializemyData(System.IO.File.ReadAllText(imp));
                     CreateCustomShape2(verte);
                 }

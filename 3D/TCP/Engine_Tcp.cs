@@ -7,25 +7,29 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using Utility.IO;
+
 using UT = Utility.IO;
+
 using Shared_Utility.Logger;
+
 namespace EngineViewer._3D.TCP
 {
     public class Engine_Tcp
     {
         public static bool Started;
         public static int EnginePort = 120;
+
         public Engine_Tcp()
         {
             Task.Run(async () =>
-            {
-                await Task.Delay(3000); //allow some time to get the window rendered
+          {
+                  await Task.Delay(1000); //allow some time to get the window rendered
                 Started = true;
 
-                UT.Net.SetupServer(handelconnection, "127.0.0.1", EnginePort);
-
-            });
+              UT.Net.SetupServer(handelconnection, "127.0.0.1", EnginePort);
+          });
         }
+
         async private void handelconnection(TcpClient _client)
         {
             var client = _client;
@@ -45,11 +49,9 @@ namespace EngineViewer._3D.TCP
                 int Code = BitConverter.ToInt32(resp.ResponseByte, 0);
                 Logger.Log($"Sending Code: {Code}");
 
-
                 try
                 {
                     ResolveTcpRequest(Code, client, resp);
-
                 }
                 catch (Exception ex)
                 {
@@ -87,8 +89,8 @@ namespace EngineViewer._3D.TCP
                 case Engine_Code.DrawGeometry:
                     {
                         var js = JStructBase.FromServer(resp);
-                        var geometryFilePaths = new List<string>().JDeserializemyData(js.JsData);
-
+                        var geometryFolderPaths = "".JDeserializemyData(js.JsData) ;
+                        var geometryFilePaths = Directory.GetFiles(geometryFolderPaths).ToList();
                         DefaultScene.Actions.Add(() =>
                         {
                             DefaultScene.Instance.DrawGeometryFromRevit(geometryFilePaths);
@@ -101,7 +103,7 @@ namespace EngineViewer._3D.TCP
             }
         }
 
-        async static Task<TcpClient> CallExternalAppliation(Action<TcpClient> callback = null)
+        private static async Task<TcpClient> CallExternalAppliation(Action<TcpClient> callback = null)
         {
             callback = callback == null ? (c) => { } : callback;
             Logger.Log("Calling External App on: 191");
@@ -113,11 +115,11 @@ namespace EngineViewer._3D.TCP
             var client = await CallExternalAppliation((c) =>
             {
                 c.SendByStream2(js.JSerialize().ToByteArray(Encoding.ASCII), Engine_Code.Received);
-                Logger.Log($"Request Sent from Engine");
+                Logger.Log($"Request Sent from Engine: {js.JsMessage}");
             });
             if (client == null)
             {
-                Logger.Log($"Receiver not Initialized");
+                Logger.Log($"Couldn't Connect to External App", "", Logger.ErrorType.Warrning);
             }
         }
 

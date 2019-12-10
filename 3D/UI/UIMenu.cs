@@ -36,7 +36,6 @@ namespace EngineViewer.Actions._3D.UI
                     if (ImGui.MenuItem("Import", ""))
                     {
                         var node = Rbfx_IO.LoadAsset(RootNode, false);
-
                     }
                     if (ImGui.MenuItem("Open", ""))
                     {

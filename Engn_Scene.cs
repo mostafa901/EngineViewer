@@ -6,6 +6,7 @@ using EngineViewer.Actions._3D.Animations;
 using EngineViewer.Actions._3D.Models;
 using EngineViewer.Actions._3D.RbfxUtility;
 using EngineViewer.Actions._3D.UI;
+using ImGuiNet;
 using Shared_Utility;
 using System;
 using System.Collections.Generic;
@@ -14,8 +15,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Urho3DNet;
+using Utility.Constant;
 using Utility.IO;
 using static EngineViewer.Actions._3D.UI.UIMenu;
 
@@ -75,8 +78,8 @@ namespace EngineViewer
             engineParameters_[Urho3D.EpFullScreen] = false;
             engineParameters_[Urho3D.EpExternalWindow] = Parent;
             engineParameters_[Urho3D.EpWindowResizable] = true;
-            engineParameters_[Urho3D.EpWindowWidth] = 1200;
-            engineParameters_[Urho3D.EpWindowHeight] = 800;
+            engineParameters_[Urho3D.EpWindowWidth] = 1800;
+            engineParameters_[Urho3D.EpWindowHeight] = 1020;
             engineParameters_[Urho3D.EpWindowTitle] = "Hello C#";
             engineParameters_[Urho3D.EpResourcePrefixPaths] = $"{currentDir};{currentDir}/..";
         }
@@ -99,6 +102,7 @@ namespace EngineViewer
             debugHud.Mode = DebugHudMode.DebughudShowAll;
             RunOnce();
         }
+
         private void SubscribeEvents()
         {
             SubscribeToEvent(E.Update, args =>
@@ -150,14 +154,15 @@ namespace EngineViewer
                     //  string imp = @"D:\Program Files\Autodesk\Revit 2018\Testvertex_trans.json";
                     //  var verte = new List<List<string>>().JDeserializemyData(System.IO.File.ReadAllText(imp));
 
-                    var jsonFiles = Directory.GetFiles(@"D:\Revit_API\Projects\InSitU\TestFiles\", "*.json").ToList();
-                    DrawGeometryFromRevit(jsonFiles);
+                    var jsonFiles = Directory.GetFiles(@"C:\Users\mosta\AppData\Local\Temp\20191210_195757", "*.json").ToList();
+                   
+                        DrawGeometryFromRevit(jsonFiles);
+
                 }
 
                 DisplayInfoText(hoverselected);
             });
         }
-
 
         public void RunOnce()
         {
@@ -224,6 +229,7 @@ namespace EngineViewer
             cam = new Engn_Camera(scene);
             cam.CameraNode.Position = (new Vector3(0, 2, -20));
             cam.LookAt(Vector3.Zero);
+            cam.camera.FarClip = 1000;
             viewport = new Viewport(Context);
             viewport.Scene = scene;
             viewport.Camera = cam.camera;
@@ -337,33 +343,41 @@ namespace EngineViewer
         }
 
         public void DrawGeometryFromRevit(List<string> jsonFiles)
-        {
-            foreach (var jsonFilePath in jsonFiles)
+        {            
+            for (int i = 0; i < jsonFiles.Count; i++)
             {
-                var geo = new Serializable.Engine_Geometry().JDeserializemyData(System.IO.File.ReadAllText(jsonFilePath));
-                CreateCustomShape2(geo);
+                var jsonFilePath = jsonFiles[i];
+
+                try
+                {
+                    var geo = new Serializable.Engine_Geometry().JDeserializemyData(System.IO.File.ReadAllText(jsonFilePath));
+                    CreateCustomShape2(geo);
+                }
+                catch (Exception ex)
+                {
+                    ex.Log($"Error Importing File: {jsonFilePath}", Shared_Utility.Logger.Logger.ErrorType.Warrning);
+                }
             }
         }
+
         public void CreateCustomShape2(Serializable.Engine_Geometry geom)
         {
             var geonode = RootNode.CreateChild("GeoNode");
-            geonode.Rotate(new Quaternion(-90, 0.0f, 0));
-
-
+            geonode.Rotate(new Quaternion(-90, geom.Rotation, 0));
+            
             //  var mat = new Material(Context);
             //   mat.SetShaderParameter("MatDiffColor", Color.Red);
             Material mat = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");
-
-
-            Vector3 position = new Vector3(geom.Position.X, geom.Position.Y, geom.Position.Z);
             List<float> ps = new List<float>();
             List<Vector3> positionPoints = new List<Vector3>();
             foreach (var gp in geom.Engine_Points)
             {
+                gp.MultiplyBy((float)DynConstants.FeettoMeter);
                 switch (gp.EngPointType)
                 {
                     case Serializable.Engine_Geometry.PointType.Color:
                         {
+                            gp.MultiplyBy(1 /(float)DynConstants.FeettoMeter);
                             var color = new Color(gp.X, gp.Y, gp.Z, gp.L);
                             mat = new Material(Context);
                             mat.SetShaderParameter("MatDiffColor", color);
@@ -373,6 +387,7 @@ namespace EngineViewer
                         {
                             var v = new Vector3(gp.X, gp.Y, gp.Z);
                             positionPoints.Add(v);
+                            
                         }
                         break;
                 }
@@ -410,14 +425,12 @@ namespace EngineViewer
             model.SetGeometry(0, 0, geo);
             model.BoundingBox = new BoundingBox(positionPoints.ToArray());
 
-            var modelNode = geonode.CreateChild(geom.Name);
-            modelNode.Position = position;
+            var modelNode = geonode.CreateChild(geom.Name);         
+            modelNode.Position = new Vector3();
 
             StaticModel compStaticModel = modelNode.CreateComponent<StaticModel>();
             compStaticModel.SetModel(model);
             if (mat != null) compStaticModel.SetMaterial(mat);
-
-
         }
 
         public void CreateCustomShape3(List<Serializable.Engine_Geometry> geos)
@@ -516,7 +529,7 @@ namespace EngineViewer
                 var infotext = infowindow.GetChild("InfoText") as Text;
                 infowindow.SetVisible(true);
                 infowindow.Position = Context.Input.MousePosition + new IntVector2(10, 10);
-                string todisplay = hoverselected.Node.Name;
+                string todisplay = hoverselected.Node.Name +$" {hoverselected.Distance}" ;
 
                 var cusComponent = hoverselected.Node.GetComponent<CustomNodeComponent>();
                 if (cusComponent == null)

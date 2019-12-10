@@ -11,7 +11,8 @@ namespace EngineViewer.Serializable
     public class Engine_Geometry
     {
         public string Name { get; set; } = "";
-        public Engine_Point Position { get; set; } 
+        public Engine_Point Position { get; set; }
+        public float Rotation { get; set; } = 0;
         public List<Engine_Point> Engine_Points { get; set; }
         public Engine_Geometry()
         {
@@ -42,7 +43,14 @@ namespace EngineViewer.Serializable
             {
 
             }
-
+            public Engine_Point MultiplyBy(float value)
+            {
+                X *= value;
+                Y *= value;
+                Z *= value;
+                L *= value;
+                return this;
+            }
             public Engine_Point(float[] floatArray, PointType pType, int groupId)
             {
                 X = floatArray[0];

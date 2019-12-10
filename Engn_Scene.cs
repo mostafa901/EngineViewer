@@ -95,24 +95,10 @@ namespace EngineViewer
 
             InitializeTcpConnection();
 
-            // in a setup function (typically Start())
-            //XMLFile style = Cache.GetResource<XMLFile>("UI/DefaultStyle.xml");
             DebugHud debugHud = Engine.CreateDebugHud();
             debugHud.Mode = DebugHudMode.DebughudShowAll;
-//            ...
-//// setting/toggling the DebugHud, for example on a key press
-//DebugHud* debugHud = GetSubsystem<DebugHud>();
-//            if (debugHud->GetMode() != DEBUGHUD_SHOW_ALL)  // if not in SHOW_ALL mode
-//                debugHud->SetMode(DEBUGHUD_SHOW_ALL);      // set it to DEBUGHUD_SHOW_ALL
-//            else
-//                debugHud->SetMode(DEBUGHUD_SHOW_NONE);     // else hide the DebugHud
-
-            if (runOnce == false)
-            {
-                RunOnce();
-            }
+            RunOnce();
         }
-
         private void SubscribeEvents()
         {
             SubscribeToEvent(E.Update, args =>
@@ -164,113 +150,26 @@ namespace EngineViewer
                     //  string imp = @"D:\Program Files\Autodesk\Revit 2018\Testvertex_trans.json";
                     //  var verte = new List<List<string>>().JDeserializemyData(System.IO.File.ReadAllText(imp));
 
-                    string imp = @"D:\Revit_API\Projects\InSitU\TestFiles\test.json";
-                    var geoList = new List<Serializable.Engine_Geometry>().JDeserializemyData(System.IO.File.ReadAllText(imp));
-                    CreateCustomShape2(geoList);
+                    var jsonFiles = Directory.GetFiles(@"D:\Revit_API\Projects\InSitU\TestFiles\", "*.json").ToList();
+                    DrawGeometryFromRevit(jsonFiles);
                 }
 
                 DisplayInfoText(hoverselected);
             });
         }
-        public void DrawRectangle(){
-            var geoList = new List<Serializable.Engine_Geometry>();
-            var geo = new EngineViewer.Serializable.Engine_Geometry();
-            geo.Position = new Serializable.Engine_Geometry.Engine_Point();
 
-            geo.Engine_Points.Add(new Serializable.Engine_Geometry.Engine_Point()
-            {
-                EngPointType = Serializable.Engine_Geometry.PointType.Vertex,
-                X = 0,
-                Y = 0,
-                Z = 0
-            });
-            geo.Engine_Points.Add(new Serializable.Engine_Geometry.Engine_Point()
-            {
-                EngPointType = Serializable.Engine_Geometry.PointType.Texture,
-                X = 0,
-                Y = 0,
-            });
-            geo.Engine_Points.Add(new Serializable.Engine_Geometry.Engine_Point()
-            {
-                EngPointType = Serializable.Engine_Geometry.PointType.Normal,
-                X = 0,
-                Y = 1,
-                Z = 0
-            });
-            geo.Engine_Points.Add(new Serializable.Engine_Geometry.Engine_Point()
-            {
-                EngPointType = Serializable.Engine_Geometry.PointType.Vertex,
-                X = 10,
-                Y = 0,
-                Z = 0
-            });
-            geo.Engine_Points.Add(new Serializable.Engine_Geometry.Engine_Point()
-            {
-                EngPointType = Serializable.Engine_Geometry.PointType.Normal,
-                X = 0,
-                Y = 1,
-                Z = 0
-            });
-            geo.Engine_Points.Add(new Serializable.Engine_Geometry.Engine_Point()
-            {
-                EngPointType = Serializable.Engine_Geometry.PointType.Texture,
-                X = 1,
-                Y = 0
-            });
-            geo.Engine_Points.Add(new Serializable.Engine_Geometry.Engine_Point()
-            {
-                EngPointType = Serializable.Engine_Geometry.PointType.Vertex,
-                X = 10,
-                Y = 0,
-                Z = 10
-            });
-            geo.Engine_Points.Add(new Serializable.Engine_Geometry.Engine_Point()
-            {
-                EngPointType = Serializable.Engine_Geometry.PointType.Normal,
-                X = 0,
-                Y = 1,
-                Z = 0
-            });
-            geo.Engine_Points.Add(new Serializable.Engine_Geometry.Engine_Point()
-            {
-                EngPointType = Serializable.Engine_Geometry.PointType.Texture,
-                X = 1,
-                Y = 1
-            });
-            geo.Engine_Points.Add(new Serializable.Engine_Geometry.Engine_Point()
-            {
-                EngPointType = Serializable.Engine_Geometry.PointType.Vertex,
-                X = 0,
-                Y = 0,
-                Z = 10
-            });
-            geo.Engine_Points.Add(new Serializable.Engine_Geometry.Engine_Point()
-            {
-                EngPointType = Serializable.Engine_Geometry.PointType.Normal,
-                X = 0,
-                Y = 1,
-                Z = 0
-            });
-            geo.Engine_Points.Add(new Serializable.Engine_Geometry.Engine_Point()
-            {
-                EngPointType = Serializable.Engine_Geometry.PointType.Texture,
-                X = 0,
-                Y = 1
-            });
-            geoList.Add(geo);
-            CreateCustomShape3(geoList);
-        }
-
-        private bool runOnce = false;
 
         public void RunOnce()
         {
-            runOnce = true;
-            Task.Run(() =>
+            Task.Run(async () =>
             {
+                while (!Engine_Tcp.Started)
+                {
+                    await Task.Delay(100);
+                }
                 var js = new JStructBase();
                 js.JsMessage = "OK";
-                //     Engine_Tcp.SendRequestToClient(js);
+                Engine_Tcp.SendRequestToClient(js);
             });
         }
 
@@ -278,7 +177,7 @@ namespace EngineViewer
         {
             if (Engine_Tcp.Started == false)
             {
-                //   new Engine_Tcp();
+                new Engine_Tcp();
             }
         }
 
@@ -437,99 +336,106 @@ namespace EngineViewer
             cam.LookAt(geonode.GetComponent<StaticModel>(true).WorldBoundingBox.Center);
         }
 
-        public void CreateCustomShape2(List<Serializable.Engine_Geometry> geos)
+        public void DrawGeometryFromRevit(List<string> jsonFiles)
+        {
+            foreach (var jsonFilePath in jsonFiles)
+            {
+                var geo = new Serializable.Engine_Geometry().JDeserializemyData(System.IO.File.ReadAllText(jsonFilePath));
+                CreateCustomShape2(geo);
+            }
+        }
+        public void CreateCustomShape2(Serializable.Engine_Geometry geom)
         {
             var geonode = RootNode.CreateChild("GeoNode");
             geonode.Rotate(new Quaternion(-90, 0.0f, 0));
 
-            for (uint g = 0; g < geos.Count; g++)
+
+            //  var mat = new Material(Context);
+            //   mat.SetShaderParameter("MatDiffColor", Color.Red);
+            Material mat = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");
+
+
+            Vector3 position = new Vector3(geom.Position.X, geom.Position.Y, geom.Position.Z);
+            List<float> ps = new List<float>();
+            List<Vector3> positionPoints = new List<Vector3>();
+            foreach (var gp in geom.Engine_Points)
             {
-                //  var mat = new Material(Context);
-                //   mat.SetShaderParameter("MatDiffColor", Color.Red);
-                Material mat = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");
-
-                var geom = geos[(int)g];
-                Vector3 position = new Vector3(geom.Position.X, geom.Position.Y, geom.Position.Z);
-                List<float> ps = new List<float>();
-                List<Vector3> positionPoints = new List<Vector3>();
-                foreach (var gp in geom.Engine_Points)
+                switch (gp.EngPointType)
                 {
-                    switch (gp.EngPointType)
-                    {
-                        case Serializable.Engine_Geometry.PointType.Color:
-                            {
-                                var color = new Color(gp.X, gp.Y, gp.Z, gp.L);
-                                mat = new Material(Context);
-                                mat.SetShaderParameter("MatDiffColor", color);
-                                continue;
-                            }
-                        case Serializable.Engine_Geometry.PointType.Vertex:
-                            {
-                                var v = new Vector3(gp.X, gp.Y, gp.Z);
-                                positionPoints.Add(v);
-                            }
-                            break; 
-                    }
-                    ps.AddRange(gp.ToFloatArray());
+                    case Serializable.Engine_Geometry.PointType.Color:
+                        {
+                            var color = new Color(gp.X, gp.Y, gp.Z, gp.L);
+                            mat = new Material(Context);
+                            mat.SetShaderParameter("MatDiffColor", color);
+                            continue;
+                        }
+                    case Serializable.Engine_Geometry.PointType.Vertex:
+                        {
+                            var v = new Vector3(gp.X, gp.Y, gp.Z);
+                            positionPoints.Add(v);
+                        }
+                        break;
                 }
-
-                var psarray = ps.ToArray();
-
-                VertexBuffer vbtest = new VertexBuffer(Context);
-                vbtest.SetShadowed(true);
-                vbtest.SetSize(positionPoints.Count, VertexMask.MaskPosition | VertexMask.MaskNormal | VertexMask.MaskTexcoord1 | VertexMask.MaskTangent, false);
-                vbtest.SetData(psarray);
-
-                List<short> ind = new List<short>();
-                short c = 0;
-                for (int i = 0; i < positionPoints.Count; i += 1)
-                {
-                    ind.Add(c++);
-                }
-                short[] indexData = ind.ToArray();
-                Urho3D.GenerateTangents(psarray, vbtest.GetVertexSize(), indexData, 0, indexData.Length, 3, 2, 4);
-
-                IndexBuffer ib = new IndexBuffer(Context);
-                ib.SetShadowed(true);
-                ib.SetSize((uint)indexData.Length, false);
-                ib.SetData(indexData);
-
-                var geo = new Geometry(Context);
-                geo.SetVertexBuffer(0, vbtest);
-                geo.IndexBuffer = ib;
-                geo.SetDrawRange(PrimitiveType.TriangleList, 0, (uint)positionPoints.Count, true);
-
-                Model model = new Model(Context);
-                model.NumGeometries = 1;
-                model.SetGeometry(0, 0, geo);
-                model.BoundingBox = new BoundingBox(positionPoints.ToArray());
-
-                var modelNode = geonode.CreateChild(geom.Name);
-                modelNode.Position = position;
-
-                StaticModel compStaticModel = modelNode.CreateComponent<StaticModel>();
-                compStaticModel.SetModel(model);
-                if (mat != null) compStaticModel.SetMaterial(mat);
+                ps.AddRange(gp.ToFloatArray());
             }
-            cam.LookAt(geonode.GetComponent<StaticModel>(true).WorldBoundingBox.Center);
+
+            var psarray = ps.ToArray();
+
+            VertexBuffer vbtest = new VertexBuffer(Context);
+            vbtest.SetShadowed(true);
+            vbtest.SetSize(positionPoints.Count, VertexMask.MaskPosition | VertexMask.MaskNormal | VertexMask.MaskTexcoord1 | VertexMask.MaskTangent, false);
+            vbtest.SetData(psarray);
+
+            List<short> ind = new List<short>();
+            short c = 0;
+            for (int i = 0; i < positionPoints.Count; i += 1)
+            {
+                ind.Add(c++);
+            }
+            short[] indexData = ind.ToArray();
+            Urho3D.GenerateTangents(psarray, vbtest.GetVertexSize(), indexData, 0, indexData.Length, 3, 2, 4);
+
+            IndexBuffer ib = new IndexBuffer(Context);
+            ib.SetShadowed(true);
+            ib.SetSize((uint)indexData.Length, false);
+            ib.SetData(indexData);
+
+            var geo = new Geometry(Context);
+            geo.SetVertexBuffer(0, vbtest);
+            geo.IndexBuffer = ib;
+            geo.SetDrawRange(PrimitiveType.TriangleList, 0, (uint)positionPoints.Count, true);
+
+            Model model = new Model(Context);
+            model.NumGeometries = 1;
+            model.SetGeometry(0, 0, geo);
+            model.BoundingBox = new BoundingBox(positionPoints.ToArray());
+
+            var modelNode = geonode.CreateChild(geom.Name);
+            modelNode.Position = position;
+
+            StaticModel compStaticModel = modelNode.CreateComponent<StaticModel>();
+            compStaticModel.SetModel(model);
+            if (mat != null) compStaticModel.SetMaterial(mat);
+
+
         }
 
         public void CreateCustomShape3(List<Serializable.Engine_Geometry> geos)
         {
             var geonode = RootNode.CreateChild("GeoNode");
-          //  geonode.Rotate(new Quaternion(-90, 0.0f, 0));
+            //  geonode.Rotate(new Quaternion(-90, 0.0f, 0));
 
             for (uint g = 0; g < geos.Count; g++)
             {
                 //  var mat = new Material(Context);
                 //   mat.SetShaderParameter("MatDiffColor", Color.Red);
                 Material mat = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");
-                
+
                 var cusgeo = new CustomGeometry(Context);
                 var geom = geos[(int)g];
                 Vector3 position = new Vector3(geom.Position.X, geom.Position.Y, geom.Position.Z);
                 cusgeo.BeginGeometry(0, PrimitiveType.TriangleList);
-                
+
                 foreach (var gp in geom.Engine_Points)
                 {
                     switch (gp.EngPointType)
@@ -567,7 +473,7 @@ namespace EngineViewer
                 }
                 cusgeo.Commit();
                 var geo = cusgeo.GetLodGeometry(0, 0);
-                
+
                 Model model = new Model(Context);
                 model.NumGeometries = 1;
                 model.SetGeometry(0, 0, geo);

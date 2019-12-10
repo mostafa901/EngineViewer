@@ -74,6 +74,7 @@
     <Compile Include="3D\Rbfx_IO.cs" />
     <Compile Include="3D\Serializable\Engine_Geometry.cs" />
     <Compile Include="3D\TCP\Engine_Tcp.cs" />
+    <Compile Include="3D\Test\Draw.cs" />
     <Compile Include="3D\Test\Rbfx_RandomBoxes.cs" />
     <Compile Include="3D\Test\Rbfx_Zone_Test.cs" />
     <Compile Include="3D\UI\Rbfx_Selection.cs" />

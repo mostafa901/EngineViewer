@@ -1,7 +1,9 @@
 ﻿using EngineViewer;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -17,32 +19,36 @@ using Urho3DNet;
 
 namespace WPFEngine
 {
-	/// <summary>
-	/// Interaction logic for MainWindow.xaml
-	/// </summary>
-	public partial class MainWindow: System.Windows.Window
-	{
-		public MainWindow()
-		{
-			InitializeComponent();
-			WindowStyle = WindowStyle.None;
-			Loaded += delegate
-			{
-				 DefaultScene.Parent = rbfxHost.Handle;
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow: System.Windows.Window
+    {
+        public MainWindow()
+        {
+            string errorpath = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/ErrorLog/";
+        
+            Shared_Utility.Logger.Logger.Initialize(errorpath);
 
-				Task.Run(() =>
-				{
-					using (var context = new Context())
-					{
-						using (var application = new DefaultScene(context))
-						{
+            InitializeComponent();
+            WindowStyle = WindowStyle.None;
+            Loaded += delegate
+            {
+                DefaultScene.Parent = rbfxHost.Handle;
+
+                Task.Run(() =>
+                {
+                    using (var context = new Context())
+                    {
+                        using (var application = new DefaultScene(context))
+                        {
                             application.Context.Cache.AddResourceDir($"{App.LocaldllPath}/Resources/3D");
 
                             application.Run();
-						}
-					}
-				});
-			};
-		}
-	}
+                        }
+                    }
+                });
+            };
+        }
+    }
 }

@@ -7,21 +7,23 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using Utility.IO;
-
+using UT = Utility.IO;
+using Shared_Utility.Logger;
 namespace EngineViewer._3D.TCP
 {
     public class Engine_Tcp
     {
         public static bool Started;
-
-
+        public static int EnginePort = 120;
         public Engine_Tcp()
         {
-            Started = true;
             Task.Run(async () =>
             {
                 await Task.Delay(3000); //allow some time to get the window rendered
-                Net.SetupServer(handelconnection, "127.0.0.1", 120);
+                Started = true;
+
+                UT.Net.SetupServer(handelconnection, "127.0.0.1", EnginePort);
+
             });
         }
         async private void handelconnection(TcpClient _client)
@@ -31,7 +33,7 @@ namespace EngineViewer._3D.TCP
 
             try
             {
-                Console.WriteLine($"[{DateTime.Now.ToString()}] Received data: ");
+                Logger.Log($"Received data: from {_client.Client.RemoteEndPoint.AddressFamily.ToString()}");
                 var resp = await client.ReadfromStream2();
                 if (resp.ResponseByte.Length == 0)
                 {
@@ -41,31 +43,29 @@ namespace EngineViewer._3D.TCP
                 var data = File.ReadAllBytes(resp.SavedDataPath);
 
                 int Code = BitConverter.ToInt32(resp.ResponseByte, 0);
-                Console.Write($"[{DateTime.Now.ToString()}] Sending Code: {Code}");
-                Console.WriteLine();
+                Logger.Log($"Sending Code: {Code}");
+
 
                 try
                 {
                     ResolveTcpRequest(Code, client, resp);
-                    Console.WriteLine();
+
                 }
                 catch (Exception ex)
                 {
                     var js = new JStructBase();
                     js.JsMessage = ex.ToString();
                     client.SendByStream2(js.JSerialize().ToByteArray(Encoding.ASCII), Engine_Code.Failed);
-                    Console.WriteLine($"[{DateTime.Now.ToString()}] Method Number not found");
-                    Console.WriteLine(ex.ToString());
+                    Logger.Log($"Method Number not found");
+                    ex.Log("Connecting from Engine", Logger.ErrorType.Warrning);
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine();
-                Console.WriteLine($"[{DateTime.Now.ToString()}] {ex.Message}");
-                Console.WriteLine();
+                ex.Log(ex.Message, Logger.ErrorType.Error);
             }
 
-            client.Close();
+            client?.Close();
         }
 
         private void ResolveTcpRequest(int code, TcpClient client, Net.ResponseBytes resp)
@@ -75,23 +75,23 @@ namespace EngineViewer._3D.TCP
                 case Engine_Code.Message:
                     {
                         var js = JStructBase.FromServer(resp);
-                        DefaultScene.Actions.Add(async () =>
-                        {
-                            new Urho3DNet.MessageBox(DefaultScene.scene.Context, js.JsMessage);
-                            js = new JStructBase();
-                            js.JsMessage = "Message Sent";
-                            SendRequestToClient(js);
-                        });
+                        DefaultScene.Actions.Add(() =>
+                      {
+                          new Urho3DNet.MessageBox(DefaultScene.scene.Context, js.JsMessage);
+                          js = new JStructBase();
+                          js.JsMessage = "Message Sent";
+                          SendRequestToClient(js);
+                      });
                         break;
                     }
                 case Engine_Code.DrawGeometry:
                     {
                         var js = JStructBase.FromServer(resp);
-                        var geos = new List<Serializable.Engine_Geometry>().JDeserializemyData(js.JsData);
+                        var geometryFilePaths = new List<string>().JDeserializemyData(js.JsData);
 
                         DefaultScene.Actions.Add(() =>
                         {
-                            DefaultScene.Instance.CreateCustomShape2(geos);
+                            DefaultScene.Instance.DrawGeometryFromRevit(geometryFilePaths);
                         });
 
                         break;
@@ -101,16 +101,23 @@ namespace EngineViewer._3D.TCP
             }
         }
 
+        async static Task<TcpClient> CallExternalAppliation(Action<TcpClient> callback = null)
+        {
+            callback = callback == null ? (c) => { } : callback;
+            Logger.Log("Calling External App on: 191");
+            return await Net.TCP.Connect("127.0.0.1", 191, callback);
+        }
+
         async public static void SendRequestToClient(JStructBase js)
         {
-            var client = await Net.TCP.Connect("127.0.0.1", 121, (c) =>
-             {
-                 c.SendByStream2(js.JSerialize().ToByteArray(Encoding.ASCII), Engine_Code.Received);
-                // File.AppendAllText(@"C:\Users\mostafa90\AppData\Local\Temp\test.txt",$"[{DateTime.Now.ToLongTimeString()}]:    Request Sent from Engine\r\n");
-             });
-             if(client==null)
-             {
-              //  File.AppendAllText(@"C:\Users\mostafa90\AppData\Local\Temp\test.txt", $"[{DateTime.Now.ToLongTimeString()}]:    Receiver not Initialized\r\n");
+            var client = await CallExternalAppliation((c) =>
+            {
+                c.SendByStream2(js.JSerialize().ToByteArray(Encoding.ASCII), Engine_Code.Received);
+                Logger.Log($"Request Sent from Engine");
+            });
+            if (client == null)
+            {
+                Logger.Log($"Receiver not Initialized");
             }
         }
 

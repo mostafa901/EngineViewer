@@ -116,7 +116,7 @@ namespace EngineViewer
                 cam.FirstPersonCamera(this, Context.Time.TimeStep, 10, Selection?.SelectedModel?.Node);
 
                 //CheckSelection
-                StaticModel hoverselected = null;
+                Drawable hoverselected = null;
                 if (uiMenu.ActionMenu == menuaction.none)
                 {
                     hoverselected = Selection.SelectGeometry(this, scene, cam);
@@ -153,9 +153,11 @@ namespace EngineViewer
 
                     //  string imp = @"D:\Program Files\Autodesk\Revit 2018\Testvertex_trans.json";
                     //  var verte = new List<List<string>>().JDeserializemyData(System.IO.File.ReadAllText(imp));
+                    List<string> jsonFiles = new List<string>();
 
-                    var jsonFiles = Directory.GetFiles(@"C:\Users\mosta\AppData\Local\Temp\20191210_195757", "*.json").ToList();
-                   
+                    jsonFiles.Add(Utility.IO.system.LoadFile("all|*.*"));
+
+                    if (jsonFiles.Count > 0)
                         DrawGeometryFromRevit(jsonFiles);
 
                 }
@@ -343,7 +345,7 @@ namespace EngineViewer
         }
 
         public void DrawGeometryFromRevit(List<string> jsonFiles)
-        {            
+        {
             for (int i = 0; i < jsonFiles.Count; i++)
             {
                 var jsonFilePath = jsonFiles[i];
@@ -351,7 +353,7 @@ namespace EngineViewer
                 try
                 {
                     var geo = new Serializable.Engine_Geometry().JDeserializemyData(System.IO.File.ReadAllText(jsonFilePath));
-                    CreateCustomShape2(geo);
+                    CreateCustomShape3(geo);
                 }
                 catch (Exception ex)
                 {
@@ -364,7 +366,7 @@ namespace EngineViewer
         {
             var geonode = RootNode.CreateChild("GeoNode");
             geonode.Rotate(new Quaternion(-90, geom.Rotation, 0));
-            
+
             //  var mat = new Material(Context);
             //   mat.SetShaderParameter("MatDiffColor", Color.Red);
             Material mat = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");
@@ -377,7 +379,7 @@ namespace EngineViewer
                 {
                     case Serializable.Engine_Geometry.PointType.Color:
                         {
-                            gp.MultiplyBy(1 /(float)DynConstants.FeettoMeter);
+                            gp.MultiplyBy(1 / (float)DynConstants.FeettoMeter);
                             var color = new Color(gp.X, gp.Y, gp.Z, gp.L);
                             mat = new Material(Context);
                             mat.SetShaderParameter("MatDiffColor", color);
@@ -387,7 +389,7 @@ namespace EngineViewer
                         {
                             var v = new Vector3(gp.X, gp.Y, gp.Z);
                             positionPoints.Add(v);
-                            
+
                         }
                         break;
                 }
@@ -425,82 +427,78 @@ namespace EngineViewer
             model.SetGeometry(0, 0, geo);
             model.BoundingBox = new BoundingBox(positionPoints.ToArray());
 
-            var modelNode = geonode.CreateChild(geom.Name);         
+            var modelNode = geonode.CreateChild(geom.Name);
             modelNode.Position = new Vector3();
 
             StaticModel compStaticModel = modelNode.CreateComponent<StaticModel>();
             compStaticModel.SetModel(model);
             if (mat != null) compStaticModel.SetMaterial(mat);
         }
-
-        public void CreateCustomShape3(List<Serializable.Engine_Geometry> geos)
+        public void CreateCustomShape3(Serializable.Engine_Geometry geom)
         {
             var geonode = RootNode.CreateChild("GeoNode");
-            //  geonode.Rotate(new Quaternion(-90, 0.0f, 0));
+            geonode.Rotate(new Quaternion(-90, geom.Rotation, 0));
 
-            for (uint g = 0; g < geos.Count; g++)
+            //  var mat = new Material(Context);
+            //   mat.SetShaderParameter("MatDiffColor", Color.Red);
+            Material mat = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");
+            List<float> ps = new List<float>();
+            List<Vector3> positionPoints = new List<Vector3>();
+            List<Vector2> texturePoints = new List<Vector2>();
+            List<Vector3> normalPoints = new List<Vector3>();
+
+
+            foreach (var gp in geom.Engine_Points)
             {
-                //  var mat = new Material(Context);
-                //   mat.SetShaderParameter("MatDiffColor", Color.Red);
-                Material mat = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");
-
-                var cusgeo = new CustomGeometry(Context);
-                var geom = geos[(int)g];
-                Vector3 position = new Vector3(geom.Position.X, geom.Position.Y, geom.Position.Z);
-                cusgeo.BeginGeometry(0, PrimitiveType.TriangleList);
-
-                foreach (var gp in geom.Engine_Points)
+                gp.MultiplyBy((float)DynConstants.FeettoMeter);
+                switch (gp.EngPointType)
                 {
-                    switch (gp.EngPointType)
-                    {
-                        case Serializable.Engine_Geometry.PointType.Color:
-                            {
-                                var color = new Color(gp.X, gp.Y, gp.Z, gp.L);
-                                mat = new Material(Context);
-                                mat.SetShaderParameter("MatDiffColor", color);
-                                cusgeo.DefineColor(color);
-                                continue;
-                            }
-                        case Serializable.Engine_Geometry.PointType.Vertex:
-                            {
-                                var v = new Vector3(gp.X, gp.Y, gp.Z);
-                                cusgeo.DefineVertex(v);
-                            }
-                            break;
+                    case Serializable.Engine_Geometry.PointType.Color:
+                        {
+                            gp.MultiplyBy(1 / (float)DynConstants.FeettoMeter);
+                            var color = new Color(gp.X, gp.Y, gp.Z, gp.L);
+                            mat = new Material(Context);
+                            mat.SetShaderParameter("MatDiffColor", color);
+                            continue;
+                        }
+                    case Serializable.Engine_Geometry.PointType.Vertex:
+                        {
+                            var v = new Vector3(gp.X, gp.Y, gp.Z);
+                            positionPoints.Add(v);
 
-                        case Serializable.Engine_Geometry.PointType.Texture:
-                            {
-                                var v = new Vector2(gp.X, gp.Y);
-                                cusgeo.DefineTexCoord(v);
-                            }
-                            break;
+                        }
+                        break;
 
-                        case Serializable.Engine_Geometry.PointType.Normal:
-                            {
-                                var v = new Vector3(gp.X, gp.Y, gp.Z);
-                                cusgeo.DefineNormal(v);
-                                cusgeo.DefineTangent(new Vector4(v, 0));
-                            }
+                    case Serializable.Engine_Geometry.PointType.Normal:
+                        {
+                            var v = new Vector3(gp.X, gp.Y, gp.Z);
+                            normalPoints.Add(v);
                             break;
-                    }
+                        }
+                    case Serializable.Engine_Geometry.PointType.Texture:
+                        {
+                            texturePoints.Add(new Vector2(gp.X, gp.Y));
+                            break;
+                        }
                 }
-                cusgeo.Commit();
-                var geo = cusgeo.GetLodGeometry(0, 0);
-
-                Model model = new Model(Context);
-                model.NumGeometries = 1;
-                model.SetGeometry(0, 0, geo);
-                model.BoundingBox = new BoundingBox(cusgeo.Vertices.SelectMany(o => o).Select(o => o.Position).ToArray());
-
-                var modelNode = geonode.CreateChild(geom.Name);
-                modelNode.Position = position;
-
-                StaticModel compStaticModel = modelNode.CreateComponent<StaticModel>();
-                compStaticModel.SetModel(model);
-                if (mat != null) compStaticModel.SetMaterial(mat);
+                ps.AddRange(gp.ToFloatArray());
             }
-            cam.LookAt(geonode.GetComponent<StaticModel>(true).WorldBoundingBox.Center);
+            var cusnode = new CustomNodeComponent(Context);
+            cusnode.ReloadAction = (() =>
+            {
+                cusnode.geom.BeginGeometry(0, PrimitiveType.TriangleList);
+                cusnode.geom.SetMaterial(Material_Ext.SetMaterialFromColor(Color.Green,true));
+                positionPoints.ForEach(p => cusnode.geom.DefineVertex(p));
+                positionPoints.ForEach(p => cusnode.geom.DefineColor(Color.Red));
+                normalPoints.ForEach(p => cusnode.geom.DefineNormal(p));
+                texturePoints.ForEach(p => cusnode.geom.DefineTexCoord(p));
+             //   normalPoints.ForEach(p => cusnode.geom.DefineTangent(new Vector4(p, 1)));
+                
+                cusnode.geom.Commit();
+            });
+            geonode.AddComponent(cusnode, cusnode.ID, CreateMode.Local);
         }
+
 
         private Window infowindow = null;
 
@@ -522,14 +520,14 @@ namespace EngineViewer
             infotext.SetFont("Arial.ttf", 12);
         }
 
-        private void DisplayInfoText(StaticModel hoverselected)
+        private void DisplayInfoText(Drawable hoverselected)
         {
             if (hoverselected != null)
             {
                 var infotext = infowindow.GetChild("InfoText") as Text;
                 infowindow.SetVisible(true);
                 infowindow.Position = Context.Input.MousePosition + new IntVector2(10, 10);
-                string todisplay = hoverselected.Node.Name +$" {hoverselected.Distance}" ;
+                string todisplay = hoverselected.Node.Name + $" {hoverselected.Distance}";
 
                 var cusComponent = hoverselected.Node.GetComponent<CustomNodeComponent>();
                 if (cusComponent == null)
@@ -564,7 +562,7 @@ namespace EngineViewer
 
         private string objname = "wall";
 
-        private void touraroundboxes(StaticModel model)
+        private void touraroundboxes(Drawable model)
         {
             //	var model = scene.GetChild("Boxes").GetChildren()[(int)Randoms.Next(1, 2000)].GetComponent<StaticModel>();
             if (model == null) return;

@@ -96,12 +96,12 @@ namespace EngineViewer.Actions._3D.UI
                             {
                                 if (ImGui.MenuItem("Ccw"))
                                 {
-                                    Selection.SelectedModel.GetMaterial().CullMode = CullMode.CullCcw;
+                                    ((dynamic)Selection.SelectedModel).GetMaterial().CullMode = CullMode.CullCcw;
                                     ActionMenu = menuaction.none;
                                 }
                                 if (ImGui.MenuItem("Cw"))
                                 {
-                                    Selection.SelectedModel.GetMaterial().CullMode = CullMode.CullCw;
+                                    ((dynamic)Selection.SelectedModel).GetMaterial().CullMode = CullMode.CullCw;
                                     ActionMenu = menuaction.none;
                                 }
                                 ImGui.EndMenu();
@@ -117,7 +117,7 @@ namespace EngineViewer.Actions._3D.UI
                                     //transmap.SetTechnique(0, transmap.Context.Cache.GetResource<Technique>("Techniques/DiffVCol.xml"));
                                     transmap = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");
                                     transmap.SetShaderParameter("MatDiffColor", new Color(.6f, .6f, .6f, .4f));
-                                    Selection.SelectedModel.SetMaterial(transmap);
+                                    ((dynamic)Selection.SelectedModel).SetMaterial(transmap);
                                     Selection.SetOriginalMaterial(transmap);
                                     ActionMenu = menuaction.none;
                                 }
@@ -127,7 +127,7 @@ namespace EngineViewer.Actions._3D.UI
                                     var comp = Selection.SelectedModel.Node.GetComponent<CustomNodeComponent>(true);
                                     if (comp != null)
                                     {
-                                        Selection.SelectedModel.SetMaterial(comp.OriginalMaterial);
+                                        ((dynamic)Selection.SelectedModel).SetMaterial(comp.OriginalMaterial);
                                         Selection.SetOriginalMaterial(comp.OriginalMaterial);
                                     }
                                     ActionMenu = menuaction.none;

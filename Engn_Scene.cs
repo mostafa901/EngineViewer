@@ -1,19 +1,11 @@
-﻿using EngineViewer._3D.Extention;
-using EngineViewer._3D.TCP;
+﻿using EngineViewer._3D.TCP;
 using EngineViewer._3D.Test;
-using EngineViewer._3D.Utility;
-using EngineViewer.Actions._3D.Animations;
 using EngineViewer.Actions._3D.Models;
 using EngineViewer.Actions._3D.RbfxUtility;
 using EngineViewer.Actions._3D.UI;
-using Shared_Utility;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using Urho3DNet;
 using Utility.IO;
@@ -99,6 +91,7 @@ namespace EngineViewer
             debugHud.Mode = DebugHudMode.DebughudShowAll;
             RunOnce();
         }
+
         private void SubscribeEvents()
         {
             SubscribeToEvent(E.Update, args =>
@@ -112,7 +105,7 @@ namespace EngineViewer
                 cam.FirstPersonCamera(this, Context.Time.TimeStep, 10, Selection?.SelectedModel?.Node);
 
                 //CheckSelection
-                StaticModel hoverselected = null;
+                Drawable hoverselected = null;
                 if (uiMenu.ActionMenu == menuaction.none)
                 {
                     hoverselected = Selection.SelectGeometry(this, scene, cam);
@@ -159,7 +152,6 @@ namespace EngineViewer
             });
         }
 
-
         public void RunOnce()
         {
             Task.Run(async () =>
@@ -168,7 +160,7 @@ namespace EngineViewer
                 {
                     await Task.Delay(100);
                 }
-                var js = new JStructBase();
+                var js = new JStruct();
                 js.JsMessage = "OK";
                 Engine_Tcp.SendRequestToClient(js);
             });
@@ -345,37 +337,41 @@ namespace EngineViewer
                 CreateCustomShape2(geo);
             }
         }
+
         public void CreateCustomShape2(Serializable.Engine_Geometry geom)
         {
             var geonode = RootNode.CreateChild("GeoNode");
             geonode.Rotate(new Quaternion(-90, 0.0f, 0));
 
-            Material mat = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");
-            mat = Material_Ext.SetMaterialFromColor(Color.Red, true);
-            
+            Material mat = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml"); 
+
+            geom.GenerateTangents();
+
             var cusGeo = geonode.CreateComponent<CustomGeometry>();
             cusGeo.BeginGeometry(0, PrimitiveType.TriangleList);
+
             cusGeo.SetMaterial(mat);
             foreach (var face in geom.Engine_Faces)
             {
                 cusGeo.DefineVertex(face.V1.ToVec3());
                 cusGeo.DefineNormal(face.N1.ToVec3());
                 cusGeo.DefineTexCoord(face.Tx1.ToVec2());
+                cusGeo.DefineTangent(face.Tan1.ToVec4());
 
                 cusGeo.DefineVertex(face.V2.ToVec3());
                 cusGeo.DefineNormal(face.N2.ToVec3());
                 cusGeo.DefineTexCoord(face.Tx2.ToVec2());
+                cusGeo.DefineTangent(face.Tan2.ToVec4());
 
                 cusGeo.DefineVertex(face.V3.ToVec3());
                 cusGeo.DefineNormal(face.N3.ToVec3());
                 cusGeo.DefineTexCoord(face.Tx3.ToVec2());
+                cusGeo.DefineTangent(face.Tan3.ToVec4());
             }
-
             cusGeo.Commit();
-             
+
         }
 
-        
         private Window infowindow = null;
 
         private void SetupInfoWindow()
@@ -396,7 +392,7 @@ namespace EngineViewer
             infotext.SetFont("Arial.ttf", 12);
         }
 
-        private void DisplayInfoText(StaticModel hoverselected)
+        private void DisplayInfoText(Drawable hoverselected)
         {
             if (hoverselected != null)
             {
@@ -438,7 +434,7 @@ namespace EngineViewer
 
         private string objname = "wall";
 
-        private void touraroundboxes(StaticModel model)
+        private void touraroundboxes(Drawable model)
         {
             //	var model = scene.GetChild("Boxes").GetChildren()[(int)Randoms.Next(1, 2000)].GetComponent<StaticModel>();
             if (model == null) return;

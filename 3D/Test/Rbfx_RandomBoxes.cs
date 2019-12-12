@@ -14,7 +14,7 @@ namespace EngineViewer._3D.Test
 		public Rbfx_RandomBoxes(Node RootNode)
 		{
 			var boxesNode = RootNode.CreateChild("Boxes");
-
+            boxesNode.SetTemporary(true);
 			const int numObjects = 2000;
 			var boxModel = RootNode.Context.Cache.GetResource<Urho3DNet.Model>("Models/Box.mdl");
 			var boxMaterial = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");

@@ -25,7 +25,7 @@ namespace EngineViewer._3D.TCP
           {
               await Task.Delay(1000); //allow some time to get the window rendered
               Started = true;
-
+              
               UT.Net.SetupServer(handelconnection, "127.0.0.1", EnginePort);
           });
         }
@@ -76,7 +76,7 @@ namespace EngineViewer._3D.TCP
             {
                 case Engine_Code.Message:
                     {
-                        var js = new JStruct().FromServer<JStruct>(resp);
+                        var js = new JStruct().FromServer(resp);
                         DefaultScene.Actions.Add(() =>
                       {
                           new Urho3DNet.MessageBox(DefaultScene.scene.Context, js.JsMessage);
@@ -88,13 +88,20 @@ namespace EngineViewer._3D.TCP
                     }
                 case Engine_Code.DrawGeometry:
                     {
-                        var js = new JStruct().FromServer<JStruct>(resp);
-                        var geometryFolderPaths = "".JDeserializemyData(js.JsData);
-                        var geometryFilePaths = Directory.GetFiles(geometryFolderPaths).ToList();
-                        DefaultScene.Actions.Add(() =>
+                        try
                         {
-                            DefaultScene.Instance.DrawGeometryFromRevit(geometryFilePaths);
-                        });
+                            var js = new JStruct().FromServer(resp);
+                            var geometryFolderPaths = "".JDeserializemyData(js.JsData);
+                            var geometryFilePaths = Directory.GetFiles(geometryFolderPaths).ToList();
+                            DefaultScene.Actions.Add(() =>
+                            {
+                                DefaultScene.Instance.DrawGeometryFromRevit(geometryFilePaths);
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            ex.Log("Error DrawingGeometry from TCP", Logger.ErrorType.Warrning);
+                        }
 
                         break;
                     }

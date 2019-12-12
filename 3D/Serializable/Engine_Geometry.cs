@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Urho3DNet;
+using Logger = Shared_Utility.Logger.Logger;
 
 namespace EngineViewer.Serializable
 {
@@ -9,12 +10,16 @@ namespace EngineViewer.Serializable
         public string Name { get; set; } = "";
         public Engine_Point Position { get; set; }
         public List<Engine_Face> Engine_Faces { get; set; }
+        public Engine_Point Rotation { get; set; }
+        public Engine_Point Color { get; set; }
 
         public bool UseLargeIndex = false;
+
         public Engine_Geometry()
         {
             Engine_Faces = new List<Engine_Face>();
             Position = new Engine_Point() { EngPointType = PointType.Position };
+            Rotation = new Engine_Point() { EngPointType = PointType.Rotation };
         }
 
         public enum PointType
@@ -24,7 +29,8 @@ namespace EngineViewer.Serializable
             Normal,
             Texture,
             Position,
-            Tangent
+            Tangent,
+            Rotation
         }
 
         public Engine_Face GetFace(int index)
@@ -32,9 +38,22 @@ namespace EngineViewer.Serializable
             return Engine_Faces[index];
         }
 
+        public void Scale(float value)
+        {
+            foreach (var f in Engine_Faces)
+            {
+                f.V1.Scale(value);
+                f.V2.Scale(value);
+                f.V3.Scale(value);
+                f.Tx1.Scale(value);
+                f.Tx2.Scale(value);
+                f.Tx3.Scale(value);
+            }
+        }
+
         public struct Engine_Face
         {
-            public int FaceId;
+            public string FaceId;
 
             public Engine_Point V1;
             public Engine_Point V2;
@@ -85,15 +104,33 @@ namespace EngineViewer.Serializable
             return floatPoints.ToArray();
         }
 
-        public short[] GetIndex()
+        public Color GetColor()
         {
-            List<short> indexPoints = new List<short>(0);
+            if (Color == null) Color = new Engine_Point(.28f, .28f, .28f, 1, PointType.Color);
+            return new Color(Color.X, Color.Y, Color.Z, Color.L);
+        }
+
+        public short[] GetShortIndex()
+        {
+            List<short> shortIndexPoints = new List<short>();
+            var totalindexcount = Engine_Faces.Count * 3;
+            for (short i = 0; i < totalindexcount; i++)
+            {
+                shortIndexPoints.Add(i);
+            }
+
+            return shortIndexPoints.ToArray();
+        }
+
+        public int[] GetLongIndex()
+        {
+            List<int> longIndexPoints = new List<int>();
+
             for (short i = 0; i < Engine_Faces.Count * 3; i++)
             {
-                indexPoints.Add(i);
+                longIndexPoints.Add(i);
             }
-        //    indexPoints.Reverse();
-            return indexPoints.ToArray();
+            return longIndexPoints.ToArray();
         }
 
         public class Engine_Point
@@ -107,6 +144,14 @@ namespace EngineViewer.Serializable
 
             public Engine_Point()
             {
+            }
+
+            public void Scale(float value)
+            {
+                X *= value;
+                Y *= value;
+                Z *= value;
+                L *= value;
             }
 
             public Engine_Point(float x, float y, float z, float l, PointType pType)
@@ -191,29 +236,43 @@ namespace EngineViewer.Serializable
 
         public uint GetVBSize()
         {
+            Logger.Log("Getting VBSize");
+
             var face = Engine_Faces[0];
             uint count = 6;
             if (face.Tan1 != null) count += 4;
             if (face.Tx1 != null) count += 2;
 
-            return count *sizeof(float);
+            return count * sizeof(float);
         }
 
-        int TangentStart()
+        private int TangentStart()
         {
+            Logger.Log("Getting TangentStart");
             var f = Engine_Faces[0];
             return f.Tx1 == null ? 6 : 8;
         }
 
-        int IndexSize()
+        private int IndexSize()
         {
+            Logger.Log("Getting IndexSize");
             return UseLargeIndex ? sizeof(int) : sizeof(short);
         }
+
         internal void GenerateTangents()
         {
+            Logger.Log("Generating Tangents");
             var vbPoints = GetVbArray();
-
-            Urho3D.GenerateTangents(vbPoints, GetVBSize(), GetIndex(), IndexSize(), 0, Engine_Faces.Count * 3, TangentStart());
+            if (2146435071 <= Engine_Faces.Count * 3)
+            {
+                if (2146435071 <= Engine_Faces.Count * 3) return;
+                UseLargeIndex = true;
+                Urho3D.GenerateTangents(vbPoints, GetVBSize(), GetLongIndex(), IndexSize(), 0, Engine_Faces.Count * 3, TangentStart());
+            }
+            else
+            {
+                Urho3D.GenerateTangents(vbPoints, GetVBSize(), GetShortIndex(), IndexSize(), 0, Engine_Faces.Count * 3, TangentStart());
+            }
 
             var ps = vbPoints.ToList();
             var facescount = Engine_Faces.Count;

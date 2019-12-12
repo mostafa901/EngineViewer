@@ -22,6 +22,7 @@ namespace EngineViewer._3D.Test
             Rbfx_Zone.FogColor = new Color(0.1f, 0.2f, 0.3f);
             Rbfx_Zone.FogStart = 50;
             Rbfx_Zone.FogEnd = 100;
+            Rbfx_Zone.SetTemporary(true);
 			 
 		}
 

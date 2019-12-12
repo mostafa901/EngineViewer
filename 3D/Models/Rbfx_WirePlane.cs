@@ -30,7 +30,7 @@ namespace EngineViewer.Actions._3D.Models
 
 		public WirePlane(Context context) : base(context)
 		{
-
+            SetTemporary(true);
 		}
 
 		public int Size

@@ -15,9 +15,12 @@ namespace EngineViewer.Actions._3D.RbfxUtility
 		public Engn_Camera(Scene scene, string name = "Camera")
 		{
 			CameraNode = scene.CreateChild(name);
-
+            CameraNode.SetTemporary(true);
+            
 			camera = CameraNode.CreateComponent<Camera>();
+            camera.UseClipping = false;
 			CameraNode.Position = new Vector3(0, 5, 0);
+
 		}
 
 

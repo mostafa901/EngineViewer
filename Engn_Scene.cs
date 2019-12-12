@@ -8,8 +8,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Urho3DNet;
+using Utility.Constant;
 using Utility.IO;
 using static EngineViewer.Actions._3D.UI.UIMenu;
+using static EngineViewer.Serializable.Engine_Geometry;
+using Logger = Shared_Utility.Logger.Logger;
 
 namespace EngineViewer
 {
@@ -40,7 +43,7 @@ namespace EngineViewer
         public static IntPtr Parent;
         public static Scene scene;
         private Viewport viewport;
-        private Node light;
+        private Node lightNode;
         public static DefaultScene Instance;
         public Node RootNode;
         public UIMenu uiMenu;
@@ -138,14 +141,26 @@ namespace EngineViewer
 
                 if (ImGuiNet.ImGui.Button("Message"))
                 {
-                    // var msg = new MessageBox(Context, "hello", "Title message");
+                  //  string imp = system.LoadFile("Json|*.json");
+                    var imp = system.LoadDirectory();
+                    //if (string.IsNullOrEmpty(imp)) return;
+                    if (imp==null) return;
+                    var jsonFiles = imp.GetFiles("*.json").Select(o=>o.FullName).ToList();
+                    DrawGeometryFromRevit(jsonFiles);
+                }
+                if (ImGuiNet.ImGui.Button("Generate Boxes"))
+                {
+                    new Rbfx_RandomBoxes(RootNode);
+                }
+                if (ImGuiNet.ImGui.Button("Remove All Boxes"))
+                {
+                    while (true)
+                    {
+                        var nodes = RootNode.GetChild("Boxes", true);
+                        if (nodes == null) break;
+                        nodes.Remove();
+                    }
 
-                    //  string imp = @"D:\Program Files\Autodesk\Revit 2018\Testvertex_trans.json";
-                    //  var verte = new List<List<string>>().JDeserializemyData(System.IO.File.ReadAllText(imp));
-
-                    // var jsonFiles = Directory.GetFiles(@"D:\Revit_API\Projects\InSitU\TestFiles\", "*.json").ToList();
-                    // DrawGeometryFromRevit(jsonFiles);
-                    new Draw().DrawRectangle();
                 }
 
                 DisplayInfoText(hoverselected);
@@ -190,7 +205,7 @@ namespace EngineViewer
 
             RootNode = scene.CreateChild("root");
 
-            new Rbfx_RandomBoxes(RootNode);
+
 
             uiMenu = new UIMenu(RootNode, Selection);
 
@@ -199,11 +214,12 @@ namespace EngineViewer
 
         private void SetupLight()
         {
-            light = cam.CameraNode.CreateChild("Light");
-            var l = light.CreateComponent<Light>();
-            light.Position = (new Vector3(0, 25, -1));
+            lightNode = cam.CameraNode.CreateChild("Light");
+            lightNode.SetTemporary(true);
+            var l = lightNode.CreateComponent<Light>();
+            lightNode.Position = (new Vector3(0, 25, -1));
             l.Range = 200f;
-            light.LookAt(Vector3.Zero);
+            lightNode.LookAt(Vector3.Zero);
             l.LightType = LightType.LightPoint;
             l.CastShadows = true;
             l.ShadowBias = new BiasParameters(0.00025f, 0.5f);
@@ -340,13 +356,22 @@ namespace EngineViewer
 
         public void CreateCustomShape2(Serializable.Engine_Geometry geom)
         {
+            Logger.Log($"Generating Geometry [{geom.Name}]");
+
+            if (geom.Engine_Faces.Count == 0)
+            {
+                Logger.Log($"Geometry: [{geom.Name}] has no faces", "", Logger.ErrorType.Warrning);
+                return;
+            }
+            geom.Scale((float)DynConstants.FeettoMeter);
             geom.GenerateTangents();
 
             var geonode = RootNode.CreateChild("GeoNode");
-         //     geonode.Rotate(new Quaternion(-180, 0.0f, 0));
+            if (geom.Rotation != null)
+                geonode.Rotate(new Quaternion(geom.Rotation.ToVec3()));
 
             Material mat = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");
-
+            //  mat = Material_Ext.SetMaterialFromColor(geom.GetColor(), true);
 
             var cusGeo = geonode.CreateComponent<CustomGeometry>();
             cusGeo.BeginGeometry(0, PrimitiveType.TriangleList);
@@ -358,25 +383,19 @@ namespace EngineViewer
                 cusGeo.DefineNormal(face.N1.ToVec3());
                 cusGeo.DefineTexCoord(face.Tx1.ToVec2());
                 cusGeo.DefineTangent(face.Tan1.ToVec4());
-                new Draw().DrawLine(face.V1, face.N1, Color.Red, geonode);
 
                 cusGeo.DefineVertex(face.V2.ToVec3());
                 cusGeo.DefineNormal(face.N2.ToVec3());
                 cusGeo.DefineTexCoord(face.Tx2.ToVec2());
                 cusGeo.DefineTangent(face.Tan2.ToVec4());
-                new Draw().DrawLine(face.V2, face.N2, Color.Red, geonode);
 
                 cusGeo.DefineVertex(face.V3.ToVec3());
                 cusGeo.DefineNormal(face.N3.ToVec3());
                 cusGeo.DefineTexCoord(face.Tx3.ToVec2());
                 cusGeo.DefineTangent(face.Tan3.ToVec4());
-                new Draw().DrawLine(face.V3, face.N3, Color.Red, geonode);
-
             }
             cusGeo.Commit();
-             
-            
-            
+
             //cusLine.SubscribeToEvent(E.PostRenderUpdate, args =>
             //{
             //    var drender = scene.GetComponent<DebugRenderer>();

@@ -17,19 +17,18 @@ namespace EngineViewer._3D.Test
             var cusLine = linechild.CreateComponent<CustomGeometry>();
             cusLine.BeginGeometry(0, PrimitiveType.LineList);
             var mat = Material_Ext.SetMaterialFromColor(color, true);
-           // mat.FillMode = FillMode.FillWireframe;
+            // mat.FillMode = FillMode.FillWireframe;
 
             cusLine.SetMaterial(mat);
             cusLine.DefineVertex(vector.ToVec3());
             cusLine.DefineColor(color);
             cusLine.Commit();
             linechild.Position = position.ToVec3();
-
         }
+
         public void DrawRectangle()
         {
             var face01 = new Engine_Face();
-            face01.FaceId = 01;
 
             face01.V3 = new Engine_Point(-10, 0, -10, 0, PointType.Vertex);
             face01.V2 = new Engine_Point(10, 0, -10, 0, PointType.Vertex);
@@ -48,7 +47,6 @@ namespace EngineViewer._3D.Test
             face01.Tan3 = new Engine_Point(0, 0, 0, 0, PointType.Tangent);
 
             var face02 = new Engine_Face();
-            face02.FaceId = 02;
 
             face02.V1 = new Engine_Point(10, 0, 10, 0, PointType.Vertex);
             face02.V2 = new Engine_Point(-10, 0, -10, 0, PointType.Vertex);

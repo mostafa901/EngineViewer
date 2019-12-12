@@ -174,7 +174,7 @@ namespace EngineViewer
                 {
                     await Task.Delay(100);
                 }
-                var js = new JStructBase();
+                var js = new JStruct();
                 js.JsMessage = "OK";
                 Engine_Tcp.SendRequestToClient(js);
             });
@@ -410,7 +410,7 @@ namespace EngineViewer
                 ind.Add(c++);
             }
             short[] indexData = ind.ToArray();
-            Urho3D.GenerateTangents(psarray, vbtest.GetVertexSize(), indexData, 0, indexData.Length, 3, 2, 4);
+            Urho3D.GenerateTangents(psarray, vbtest.GetVertexSize(), indexData, 0, indexData.Length);
 
             IndexBuffer ib = new IndexBuffer(Context);
             ib.SetShadowed(true);

@@ -23,8 +23,8 @@ namespace EngineViewer._3D.TCP
         {
             Task.Run(async () =>
           {
-                  await Task.Delay(1000); //allow some time to get the window rendered
-                Started = true;
+              await Task.Delay(1000); //allow some time to get the window rendered
+              Started = true;
 
               UT.Net.SetupServer(handelconnection, "127.0.0.1", EnginePort);
           });
@@ -55,7 +55,7 @@ namespace EngineViewer._3D.TCP
                 }
                 catch (Exception ex)
                 {
-                    var js = new JStructBase();
+                    var js = new JStruct();
                     js.JsMessage = ex.ToString();
                     client.SendByStream2(js.JSerialize().ToByteArray(Encoding.ASCII), Engine_Code.Failed);
                     Logger.Log($"Method Number not found");
@@ -76,11 +76,11 @@ namespace EngineViewer._3D.TCP
             {
                 case Engine_Code.Message:
                     {
-                        var js = JStructBase.FromServer(resp);
+                        var js = new JStruct().FromServer<JStruct>(resp);
                         DefaultScene.Actions.Add(() =>
                       {
                           new Urho3DNet.MessageBox(DefaultScene.scene.Context, js.JsMessage);
-                          js = new JStructBase();
+                          js = new JStruct();
                           js.JsMessage = "Message Sent";
                           SendRequestToClient(js);
                       });
@@ -88,8 +88,8 @@ namespace EngineViewer._3D.TCP
                     }
                 case Engine_Code.DrawGeometry:
                     {
-                        var js = JStructBase.FromServer(resp);
-                        var geometryFolderPaths = "".JDeserializemyData(js.JsData) ;
+                        var js = new JStruct().FromServer<JStruct>(resp);
+                        var geometryFolderPaths = "".JDeserializemyData(js.JsData);
                         var geometryFilePaths = Directory.GetFiles(geometryFolderPaths).ToList();
                         DefaultScene.Actions.Add(() =>
                         {
@@ -110,7 +110,7 @@ namespace EngineViewer._3D.TCP
             return await Net.TCP.Connect("127.0.0.1", 191, callback);
         }
 
-        async public static void SendRequestToClient(JStructBase js)
+        async public static void SendRequestToClient(JStruct js)
         {
             var client = await CallExternalAppliation((c) =>
             {

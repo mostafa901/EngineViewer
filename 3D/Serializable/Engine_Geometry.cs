@@ -92,6 +92,7 @@ namespace EngineViewer.Serializable
             {
                 indexPoints.Add(i);
             }
+        //    indexPoints.Reverse();
             return indexPoints.ToArray();
         }
 

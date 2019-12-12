@@ -178,8 +178,8 @@ namespace EngineViewer
         {
             // Scene
             scene = new Scene(Context);
-            scene.CreateComponent<Octree>();
-
+            var octree = scene.CreateComponent<Octree>();
+            scene.CreateComponent<DebugRenderer>();
             SetupCameranViewPort();
 
             var eng_Zone = new Engn_Zone_Test(scene);
@@ -201,8 +201,8 @@ namespace EngineViewer
         {
             light = cam.CameraNode.CreateChild("Light");
             var l = light.CreateComponent<Light>();
-            light.Position = (new Vector3(0, 50, -1));
-            l.Range = 100f;
+            light.Position = (new Vector3(0, 25, -1));
+            l.Range = 200f;
             light.LookAt(Vector3.Zero);
             l.LightType = LightType.LightPoint;
             l.CastShadows = true;
@@ -340,36 +340,48 @@ namespace EngineViewer
 
         public void CreateCustomShape2(Serializable.Engine_Geometry geom)
         {
-            var geonode = RootNode.CreateChild("GeoNode");
-            geonode.Rotate(new Quaternion(-90, 0.0f, 0));
-
-            Material mat = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml"); 
-
             geom.GenerateTangents();
+
+            var geonode = RootNode.CreateChild("GeoNode");
+         //     geonode.Rotate(new Quaternion(-180, 0.0f, 0));
+
+            Material mat = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");
+
 
             var cusGeo = geonode.CreateComponent<CustomGeometry>();
             cusGeo.BeginGeometry(0, PrimitiveType.TriangleList);
-
             cusGeo.SetMaterial(mat);
+
             foreach (var face in geom.Engine_Faces)
             {
                 cusGeo.DefineVertex(face.V1.ToVec3());
                 cusGeo.DefineNormal(face.N1.ToVec3());
                 cusGeo.DefineTexCoord(face.Tx1.ToVec2());
                 cusGeo.DefineTangent(face.Tan1.ToVec4());
+                new Draw().DrawLine(face.V1, face.N1, Color.Red, geonode);
 
                 cusGeo.DefineVertex(face.V2.ToVec3());
                 cusGeo.DefineNormal(face.N2.ToVec3());
                 cusGeo.DefineTexCoord(face.Tx2.ToVec2());
                 cusGeo.DefineTangent(face.Tan2.ToVec4());
+                new Draw().DrawLine(face.V2, face.N2, Color.Red, geonode);
 
                 cusGeo.DefineVertex(face.V3.ToVec3());
                 cusGeo.DefineNormal(face.N3.ToVec3());
                 cusGeo.DefineTexCoord(face.Tx3.ToVec2());
                 cusGeo.DefineTangent(face.Tan3.ToVec4());
+                new Draw().DrawLine(face.V3, face.N3, Color.Red, geonode);
+
             }
             cusGeo.Commit();
-
+             
+            
+            
+            //cusLine.SubscribeToEvent(E.PostRenderUpdate, args =>
+            //{
+            //    var drender = scene.GetComponent<DebugRenderer>();
+            //    cusLine.DrawDebugGeometry(drender, true);
+            //});
         }
 
         private Window infowindow = null;

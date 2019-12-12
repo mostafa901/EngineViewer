@@ -1,4 +1,6 @@
-﻿using EngineViewer.Actions._3D.RbfxUtility;
+﻿using EngineViewer.Actions._3D.Models;
+using EngineViewer.Actions._3D.RbfxUtility;
+using ImGuiNet;
 using Urho3DNet;
 
 namespace EngineViewer.Actions._3D.UI
@@ -12,6 +14,7 @@ namespace EngineViewer.Actions._3D.UI
         {
             if (app.Context.UI.Cursor.IsVisible())
             {
+                if (ImGui.IsAnyItemHovered()) return null;
                 //Select element
                 Vector3 hitposition;
                 Drawable model;
@@ -19,8 +22,9 @@ namespace EngineViewer.Actions._3D.UI
                 Rbfx_Utility.Raycast(scene, cam, 10000, out hitposition, out model);
                 if (app.Context.Input.GetMouseButtonPress(MouseButton.MousebLeft))
                 {
+                    HiLightSelected(model);
                     SelectedModel = model;
-                    return HiLightSelected(model);
+                    return SelectedModel;
                 }
                 else
                 {
@@ -38,20 +42,16 @@ namespace EngineViewer.Actions._3D.UI
 
         private Drawable HiLightSelected(Drawable model)
         {
-            if (model != null)
+            if (SelectedModel != null)
             {
                 ((dynamic)SelectedModel).SetMaterial(Originalmat);
-                Originalmat = null;
-                model = null;
             }
 
             if (model != null)
             {
-
-                Originalmat = ((dynamic)SelectedModel).GetMaterial();
+                Originalmat = ((dynamic)model).GetMaterial();
                 ((dynamic)model).SetMaterial(Material_Ext.SelectedMaterial);
                 return model;
-
             }
 
             return null;

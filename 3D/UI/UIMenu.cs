@@ -16,12 +16,13 @@ namespace EngineViewer.Actions._3D.UI
             this.RootNode = RootNode;
             this.Selection = Selection;
         }
+
         public enum menuaction
         {
             none,
             ObjectContext,
-
         }
+
         public menuaction ActionMenu = menuaction.none;
 
         public Node RootNode { get; set; }
@@ -70,7 +71,6 @@ namespace EngineViewer.Actions._3D.UI
                 ImGui.EndMainMenuBar();
             }
 
-
             switch (ActionMenu)
             {
                 case menuaction.ObjectContext:
@@ -94,14 +94,17 @@ namespace EngineViewer.Actions._3D.UI
 
                             if (ImGui.BeginMenu("CullMode"))
                             {
+                                var mat = ((dynamic)Selection.SelectedModel).GetMaterial();
                                 if (ImGui.MenuItem("Ccw"))
                                 {
-                                    ((dynamic)Selection.SelectedModel).GetMaterial().CullMode = CullMode.CullCcw;
+                                    if (mat != null)
+                                        mat.CullMode = CullMode.CullCcw;
                                     ActionMenu = menuaction.none;
                                 }
                                 if (ImGui.MenuItem("Cw"))
                                 {
-                                    ((dynamic)Selection.SelectedModel).GetMaterial().CullMode = CullMode.CullCw;
+                                    if (mat != null)
+                                        mat.CullMode = CullMode.CullCw;
                                     ActionMenu = menuaction.none;
                                 }
                                 ImGui.EndMenu();
@@ -127,17 +130,18 @@ namespace EngineViewer.Actions._3D.UI
                                     var comp = Selection.SelectedModel.Node.GetComponent<CustomNodeComponent>(true);
                                     if (comp != null)
                                     {
-                                        ((dynamic)Selection.SelectedModel).SetMaterial(comp.OriginalMaterial);
-                                        Selection.SetOriginalMaterial(comp.OriginalMaterial);
+                                        if (comp.OriginalMaterial != null)
+                                        {
+                                            ((dynamic)Selection.SelectedModel).SetMaterial(comp.OriginalMaterial);
+                                            Selection.SetOriginalMaterial(comp.OriginalMaterial);
+                                        }
                                     }
                                     ActionMenu = menuaction.none;
-
                                 }
                                 ImGui.EndMenu();
                             }
                             ImGui.EndPopup();
                         }
-
                         break;
                     }
                 case menuaction.none:
@@ -147,4 +151,3 @@ namespace EngineViewer.Actions._3D.UI
         }
     }
 }
-

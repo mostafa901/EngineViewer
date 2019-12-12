@@ -78,8 +78,9 @@ namespace EngineViewer.Actions._3D.Models
 			if (Node == null || Node.IsDirty())
 				return;
 
-			geom = Node.CreateComponent<CustomGeometry>();
-			geom.BeginGeometry(0, PrimitiveType.LineList);
+			geom = Node.CreateComponent<CustomGeometry>();          
+
+            geom.BeginGeometry(0, PrimitiveType.LineList);
 
 			geom.SetMaterial(Material_Ext.SetMaterialFromColor(color, true));
 

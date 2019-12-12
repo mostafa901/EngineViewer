@@ -11,11 +11,11 @@ namespace EngineViewer.Serializable
     public class Engine_Geometry
     {
         public string Name { get; set; } = "";
-        public Engine_Point Position { get; set; } 
-        public List<Engine_Point> Engine_Points { get; set; }
+        public Engine_Point Position { get; set; }
+        public List<Engine_Face> Engine_Faces { get; set; }
         public Engine_Geometry()
         {
-            Engine_Points = new List<Engine_Point>();
+            Engine_Faces = new List<Engine_Face>();
             Position = new Engine_Point() { EngPointType = PointType.Position };
         }
 
@@ -29,6 +29,35 @@ namespace EngineViewer.Serializable
             Tangent
         }
 
+        public Engine_Face GetFace(int index)
+        {
+            return Engine_Faces[index];
+        }
+
+
+
+        public struct Engine_Face
+        {
+            public int FaceId;
+
+            public Engine_Point V1;
+            public Engine_Point V2;
+            public Engine_Point V3;
+
+            public Engine_Point N1;
+            public Engine_Point N2;
+            public Engine_Point N3;
+
+
+            public Engine_Point Tx1;
+            public Engine_Point Tx2;
+            public Engine_Point Tx3;
+
+            public Engine_Point Tan1;
+            public Engine_Point Tan2;
+            public Engine_Point Tan3;
+        }
+
         public class Engine_Point
         {
             public float X { get; set; } = 0f;
@@ -40,10 +69,17 @@ namespace EngineViewer.Serializable
 
             public Engine_Point()
             {
-
             }
 
-            public Engine_Point(float[] floatArray, PointType pType, int groupId)
+            public Engine_Point(float x,float y, float z,float l, PointType pType)
+            {
+                X = x;
+                Y = y;
+                Z = z;
+                L = l;
+                EngPointType = pType;
+            }
+            public Engine_Point(float[] floatArray, PointType pType)
             {
                 X = floatArray[0];
                 Y = floatArray[1];

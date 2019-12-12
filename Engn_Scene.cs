@@ -150,8 +150,9 @@ namespace EngineViewer
                     //  string imp = @"D:\Program Files\Autodesk\Revit 2018\Testvertex_trans.json";
                     //  var verte = new List<List<string>>().JDeserializemyData(System.IO.File.ReadAllText(imp));
 
-                    var jsonFiles = Directory.GetFiles(@"D:\Revit_API\Projects\InSitU\TestFiles\", "*.json").ToList();
-                    DrawGeometryFromRevit(jsonFiles);
+                    // var jsonFiles = Directory.GetFiles(@"D:\Revit_API\Projects\InSitU\TestFiles\", "*.json").ToList();
+                    // DrawGeometryFromRevit(jsonFiles);
+                    new Draw().DrawRectangle();
                 }
 
                 DisplayInfoText(hoverselected);
@@ -349,146 +350,32 @@ namespace EngineViewer
             var geonode = RootNode.CreateChild("GeoNode");
             geonode.Rotate(new Quaternion(-90, 0.0f, 0));
 
-
-            //  var mat = new Material(Context);
-            //   mat.SetShaderParameter("MatDiffColor", Color.Red);
             Material mat = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");
-
-
-            Vector3 position = new Vector3(geom.Position.X, geom.Position.Y, geom.Position.Z);
-            List<float> ps = new List<float>();
-            List<Vector3> positionPoints = new List<Vector3>();
-            foreach (var gp in geom.Engine_Points)
+            mat = Material_Ext.SetMaterialFromColor(Color.Red, true);
+            
+            var cusGeo = geonode.CreateComponent<CustomGeometry>();
+            cusGeo.BeginGeometry(0, PrimitiveType.TriangleList);
+            cusGeo.SetMaterial(mat);
+            foreach (var face in geom.Engine_Faces)
             {
-                switch (gp.EngPointType)
-                {
-                    case Serializable.Engine_Geometry.PointType.Color:
-                        {
-                            var color = new Color(gp.X, gp.Y, gp.Z, gp.L);
-                            mat = new Material(Context);
-                            mat.SetShaderParameter("MatDiffColor", color);
-                            continue;
-                        }
-                    case Serializable.Engine_Geometry.PointType.Vertex:
-                        {
-                            var v = new Vector3(gp.X, gp.Y, gp.Z);
-                            positionPoints.Add(v);
-                        }
-                        break;
-                }
-                ps.AddRange(gp.ToFloatArray());
+                cusGeo.DefineVertex(face.V1.ToVec3());
+                cusGeo.DefineNormal(face.N1.ToVec3());
+                cusGeo.DefineTexCoord(face.Tx1.ToVec2());
+
+                cusGeo.DefineVertex(face.V2.ToVec3());
+                cusGeo.DefineNormal(face.N2.ToVec3());
+                cusGeo.DefineTexCoord(face.Tx2.ToVec2());
+
+                cusGeo.DefineVertex(face.V3.ToVec3());
+                cusGeo.DefineNormal(face.N3.ToVec3());
+                cusGeo.DefineTexCoord(face.Tx3.ToVec2());
             }
 
-            var psarray = ps.ToArray();
-
-            VertexBuffer vbtest = new VertexBuffer(Context);
-            vbtest.SetShadowed(true);
-            vbtest.SetSize(positionPoints.Count, VertexMask.MaskPosition | VertexMask.MaskNormal | VertexMask.MaskTexcoord1 | VertexMask.MaskTangent, false);
-            vbtest.SetData(psarray);
-
-            List<short> ind = new List<short>();
-            short c = 0;
-            for (int i = 0; i < positionPoints.Count; i += 1)
-            {
-                ind.Add(c++);
-            }
-            short[] indexData = ind.ToArray();
-            Urho3D.GenerateTangents(psarray, vbtest.GetVertexSize(), indexData, 0, indexData.Length, 3, 2, 4);
-
-            IndexBuffer ib = new IndexBuffer(Context);
-            ib.SetShadowed(true);
-            ib.SetSize((uint)indexData.Length, false);
-            ib.SetData(indexData);
-
-            var geo = new Geometry(Context);
-            geo.SetVertexBuffer(0, vbtest);
-            geo.IndexBuffer = ib;
-            geo.SetDrawRange(PrimitiveType.TriangleList, 0, (uint)positionPoints.Count, true);
-
-            Model model = new Model(Context);
-            model.NumGeometries = 1;
-            model.SetGeometry(0, 0, geo);
-            model.BoundingBox = new BoundingBox(positionPoints.ToArray());
-
-            var modelNode = geonode.CreateChild(geom.Name);
-            modelNode.Position = position;
-
-            StaticModel compStaticModel = modelNode.CreateComponent<StaticModel>();
-            compStaticModel.SetModel(model);
-            if (mat != null) compStaticModel.SetMaterial(mat);
-
-
+            cusGeo.Commit();
+             
         }
 
-        public void CreateCustomShape3(List<Serializable.Engine_Geometry> geos)
-        {
-            var geonode = RootNode.CreateChild("GeoNode");
-            //  geonode.Rotate(new Quaternion(-90, 0.0f, 0));
-
-            for (uint g = 0; g < geos.Count; g++)
-            {
-                //  var mat = new Material(Context);
-                //   mat.SetShaderParameter("MatDiffColor", Color.Red);
-                Material mat = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");
-
-                var cusgeo = new CustomGeometry(Context);
-                var geom = geos[(int)g];
-                Vector3 position = new Vector3(geom.Position.X, geom.Position.Y, geom.Position.Z);
-                cusgeo.BeginGeometry(0, PrimitiveType.TriangleList);
-
-                foreach (var gp in geom.Engine_Points)
-                {
-                    switch (gp.EngPointType)
-                    {
-                        case Serializable.Engine_Geometry.PointType.Color:
-                            {
-                                var color = new Color(gp.X, gp.Y, gp.Z, gp.L);
-                                mat = new Material(Context);
-                                mat.SetShaderParameter("MatDiffColor", color);
-                                cusgeo.DefineColor(color);
-                                continue;
-                            }
-                        case Serializable.Engine_Geometry.PointType.Vertex:
-                            {
-                                var v = new Vector3(gp.X, gp.Y, gp.Z);
-                                cusgeo.DefineVertex(v);
-                            }
-                            break;
-
-                        case Serializable.Engine_Geometry.PointType.Texture:
-                            {
-                                var v = new Vector2(gp.X, gp.Y);
-                                cusgeo.DefineTexCoord(v);
-                            }
-                            break;
-
-                        case Serializable.Engine_Geometry.PointType.Normal:
-                            {
-                                var v = new Vector3(gp.X, gp.Y, gp.Z);
-                                cusgeo.DefineNormal(v);
-                                cusgeo.DefineTangent(new Vector4(v, 0));
-                            }
-                            break;
-                    }
-                }
-                cusgeo.Commit();
-                var geo = cusgeo.GetLodGeometry(0, 0);
-
-                Model model = new Model(Context);
-                model.NumGeometries = 1;
-                model.SetGeometry(0, 0, geo);
-                model.BoundingBox = new BoundingBox(cusgeo.Vertices.SelectMany(o => o).Select(o => o.Position).ToArray());
-
-                var modelNode = geonode.CreateChild(geom.Name);
-                modelNode.Position = position;
-
-                StaticModel compStaticModel = modelNode.CreateComponent<StaticModel>();
-                compStaticModel.SetModel(model);
-                if (mat != null) compStaticModel.SetMaterial(mat);
-            }
-            cam.LookAt(geonode.GetComponent<StaticModel>(true).WorldBoundingBox.Center);
-        }
-
+        
         private Window infowindow = null;
 
         private void SetupInfoWindow()

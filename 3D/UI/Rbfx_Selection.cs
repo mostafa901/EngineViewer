@@ -12,9 +12,9 @@ namespace EngineViewer.Actions._3D.UI
 public	class Engn_Selection
 	{
 		Material Originalmat;
-		public StaticModel SelectedModel;
+		public Drawable SelectedModel;
 
-		public StaticModel SelectGeometry(Application app, Scene scene, Engn_Camera cam)
+		public Drawable SelectGeometry(Application app, Scene scene, Engn_Camera cam)
 		{
 			if (app.Context.UI.Cursor.IsVisible())
 			{
@@ -29,7 +29,7 @@ public	class Engn_Selection
 				}
 				else
 				{
-					return model as StaticModel;
+					return model as Drawable;
 				}
 			}
 
@@ -41,11 +41,12 @@ public	class Engn_Selection
             Originalmat = mat;
         }
 
-		StaticModel HiLightSelected(Drawable model)
+		Drawable HiLightSelected(Drawable model)
 		{
 			if (SelectedModel != null)
 			{
-				SelectedModel.SetMaterial(Originalmat);
+
+				((dynamic)SelectedModel).SetMaterial(Originalmat);
 				Originalmat = null;
 				SelectedModel = null;
 			}
@@ -55,9 +56,9 @@ public	class Engn_Selection
 				SelectedModel = model as StaticModel;
 				if (SelectedModel != null)
 				{
-					Originalmat = SelectedModel.GetMaterial();
+					Originalmat = ((dynamic)SelectedModel).GetMaterial();
 
-					SelectedModel.SetMaterial(Material_Ext.SelectedMaterial);
+                    ((dynamic)SelectedModel).SetMaterial(Material_Ext.SelectedMaterial);
 
 					return SelectedModel;
 				}

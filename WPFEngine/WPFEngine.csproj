@@ -36,9 +36,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="PrjShared_Utility, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\arch4hum_installer\prjutill\PrjShared_Utility.dll</HintPath>
+    <Reference Include="Shared_Library">
+      <HintPath>..\..\Shared_Library\Shared_Library\bin\x64\Windows\Shared_Library.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />

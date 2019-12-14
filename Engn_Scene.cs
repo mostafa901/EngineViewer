@@ -299,7 +299,7 @@ namespace EngineViewer
             Material mat = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");
             if (geom.Color != null)
                 mat = Material_Ext.SetMaterialFromColor(geom.GetColor(), true);
-            mat.CullMode = CullMode.CullCw;
+           
             var cusGeo = geonode.CreateComponent<CustomGeometry>();
             cusGeo.BeginGeometry(0, PrimitiveType.TriangleList);
             cusGeo.SetMaterial(mat);

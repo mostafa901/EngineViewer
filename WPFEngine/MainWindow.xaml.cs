@@ -27,11 +27,10 @@ namespace WPFEngine
         public MainWindow()
         {
             string errorpath = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/ErrorLog/";
-        
             Shared_Utility.Logger.Logger.Initialize(errorpath);
 
             InitializeComponent();
-            WindowStyle = WindowStyle.None;
+
             Loaded += delegate
             {
                 DefaultScene.Parent = rbfxHost.Handle;

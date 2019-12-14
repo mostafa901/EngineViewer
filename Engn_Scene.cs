@@ -100,13 +100,15 @@ namespace EngineViewer
         {
             SubscribeToEvent(E.Update, args =>
             {
+                float moveSpeed = 10;
                 uiMenu.RenderMenu();
 
                 //what to do if selection is nothing
                 onUnSelect();
 
                 //camera movement
-                cam.FirstPersonCamera(this, Context.Time.TimeStep, 10, Selection?.SelectedModel?.Node);
+                if (Input.GetKeyPress(Key.KeyShift)) moveSpeed *= .5f;
+                cam.FirstPersonCamera(this, Context.Time.TimeStep, moveSpeed, Selection?.SelectedModel?.Node);
 
                 //CheckSelection
                 Drawable hoverselected = null;
@@ -219,7 +221,7 @@ namespace EngineViewer
             lightNode = cam.CameraNode.CreateChild("Light");
             lightNode.SetTemporary(true);
             var l = lightNode.CreateComponent<Light>();
-            lightNode.Position = (new Vector3(0, 25, -1));
+            lightNode.Position = (new Vector3(0, 1, 0));
             l.Range = 200f;
             lightNode.LookAt(Vector3.Zero);
             l.LightType = LightType.LightPoint;
@@ -254,99 +256,6 @@ namespace EngineViewer
             Context.UI.Cursor = new Urho3DNet.Cursor(Context);
         }
 
-        public void CreateCustomShape(List<List<string>> geos)
-        {
-            var geonode = RootNode.CreateChild("GeoNode");
-            var mat = new Material(Context);
-            // mat = Context.Cache.GetResource<Material>("Materials/Stone.xml");
-            mat.SetShaderParameter("MatDiffColor", Color.Red);
-
-            for (uint g = 0; g < geos.Count; g++)
-            {
-                var cusGeom = new CustomGeometry(Context);
-                //var geom = new CustomGeometry(Context);
-                cusGeom.SetMaterial(mat);
-                cusGeom.BeginGeometry(0, PrimitiveType.TriangleList);
-
-                var verte = geos[(int)g];
-                Vector3 pos = new Vector3();
-                for (uint i = 0; i < verte.Count; i++)
-                {
-                    var v = verte[(int)i];
-                    var ve = v.Replace("(", "").Replace(")", "");
-                    var vs = ve.Split(',');
-                    float x = float.Parse(vs[0]);
-                    float y = float.Parse(vs[1]);
-                    float z = float.Parse(vs[2]);
-                    if (vs.Length == 3)
-                    {
-                        pos = new Vector3(x, y, z);
-                        continue;
-                    }
-
-                    float xn = float.Parse(vs[3]);
-                    float yn = float.Parse(vs[4]);
-                    float zn = float.Parse(vs[5]);
-                    float xt = float.Parse(vs[6]);
-                    float yt = float.Parse(vs[7]);
-                    cusGeom.DefineVertex(new Vector3(x, y, z));
-                    cusGeom.DefineTexCoord(new Vector2(xt, yt));
-                    cusGeom.DefineNormal(new Vector3(xn, yn, zn));
-                }
-
-                cusGeom.Commit();
-                geonode.Rotate(new Quaternion(90, 0.0f, 0));
-                var modelnode = new Node(Context);
-                modelnode.Position = pos;
-                modelnode.Name = "Geom";
-                geonode.AddChild(modelnode);
-
-                var geo = cusGeom.GetLodGeometry(0, 1);
-
-                StaticModel compStaticModel = modelnode.CreateComponent<StaticModel>();
-                Model model = new Model(Context);
-                model.NumGeometries = 1;
-                model.SetGeometry(0, 0, geo);
-                var vcs = cusGeom.Vertices[0].Select(o => o.Position).ToArray();
-                model.BoundingBox = new BoundingBox(vcs);
-
-                var vbuff = geo.VertexBuffers[0].GetUnpackedData();
-                VertexBuffer vbtest = new VertexBuffer(Context);
-                vbtest.SetShadowed(true);
-
-                List<short> ind = new List<short>();
-
-                short c = 0;
-                for (int i = 0; i < vbuff.Count; i += 3)
-                {
-                    ind.Add(c++);
-                }
-                IndexBuffer ib = new IndexBuffer(Context);
-                ib.SetShadowed(true);
-                ib.SetSize((uint)ind.Count, false);
-                ib.SetData(ind.ToArray());
-
-                VertexBufferRefList vblist = new VertexBufferRefList();
-                IndexBufferRefList iblist = new IndexBufferRefList();
-
-                vblist.Add(geo.VertexBuffers[0]);
-                iblist.Add(ib);
-
-                UIntArray morphRangeStarts = new UIntArray();
-                UIntArray morphRangeCounts = new UIntArray();
-                morphRangeStarts.Add(0);
-                morphRangeCounts.Add(0);
-
-                model.SetVertexBuffers(vblist, morphRangeStarts, morphRangeCounts);
-                model.IndexBuffers = iblist;
-
-                compStaticModel.SetModel(model);
-                compStaticModel.SetMaterial(mat);
-            }
-
-            cam.LookAt(geonode.GetComponent<StaticModel>(true).WorldBoundingBox.Center);
-        }
-
         public void DrawGeometryFromRevit(List<string> jsonFiles)
         {
             foreach (var jsonFilePath in jsonFiles)
@@ -358,15 +267,20 @@ namespace EngineViewer
 
         public void CreateCustomShape2(Serializable.Engine_Geometry geom)
         {
-            var geonode = RootNode.CreateChild("GeoNode");
+            var geonode = RootNode.CreateChild(geom.Name);
             Logger.Log($"Generating Geometry [{geom.Name}]");
-
+            //   geonode.Position = geom.Position.ToVec3();
             if (geom.Engine_Faces.Count == 0)
             {
                 Logger.Log($"Geometry: [{geom.Name}] has no faces", "", Logger.ErrorType.Warrning);
                 return;
             }
-            geom.Scale((float)DynConstants.FeettoMeter);
+
+            if (geom.Rotation != null)
+                geonode.Rotate(new Quaternion(geom.Rotation.ToVec3()));
+           
+            
+#if true
             if (!geom.GenerateTangents())
             {
                 var failChild = geonode.CreateChild($"{geom.Name} Failed");
@@ -376,38 +290,41 @@ namespace EngineViewer
                 stcomp.SetModel(model);
                 return;
             }
+#endif
 
-            if (geom.Rotation != null)
-                geonode.Rotate(new Quaternion(geom.Rotation.ToVec3()));
+            float scaleValue = (float)DynConstants.FeettoMeter;
+            geonode.Scale(new Vector3(scaleValue, scaleValue, scaleValue));
+            
 
             Material mat = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");
-            //  mat = Material_Ext.SetMaterialFromColor(geom.GetColor(), true);
-
+            if (geom.Color != null)
+                mat = Material_Ext.SetMaterialFromColor(geom.GetColor(), true);
+            mat.CullMode = CullMode.CullCw;
             var cusGeo = geonode.CreateComponent<CustomGeometry>();
             cusGeo.BeginGeometry(0, PrimitiveType.TriangleList);
             cusGeo.SetMaterial(mat);
-
+            Logger.Log("Begine Geometry");
             foreach (var face in geom.Engine_Faces)
             {
-                var triangles = face.TriangleIndecees;
-                for (int triIndex = 0; triIndex < face.TriangleIndecees.Count; triIndex++)
+                var triangles = face.EngTriangles;
+                var trianglesCount = face.EngTriangles.Count;
+                for (int triIndex = 0; triIndex < trianglesCount; triIndex++)
                 {
-                    var triangle = face.TriangleIndecees[triIndex];
-
-                    var verTriIndcees = triangle.GetIndecees();
-                    for (int vIndex = 0; vIndex < verTriIndcees.Length; vIndex++)
+                    var triangle = triangles[triIndex];
+                    var triPoints = triangle.GetPoints();
+                    foreach (var engpoint in triPoints)
                     {
-                        var point = geom.ModelPoints[verTriIndcees[vIndex]];
-                        Debug.WriteLine(point.Position.GroupId);
-                        cusGeo.DefineVertex(point.Position.ToVec3());
-                        cusGeo.DefineNormal(triangle.Normal.ToVec3());
-                        cusGeo.DefineTexCoord(point.TextureCoor.ToVec2());
-                        cusGeo.DefineTangent(point.TangentCoor.ToVec4());
+                        cusGeo.DefineVertex(engpoint.EngPosition.ToVec3());
+                        cusGeo.DefineNormal(engpoint.EngNormal.ToVec3());
+                        cusGeo.DefineTexCoord(engpoint.EngTexture.ToVec2());
+                        cusGeo.DefineTangent(engpoint.EngTangent.ToVec4());
                     }
                 }
             }
             cusGeo.Commit();
+            Logger.Log("End Geometry");
 
+            cam.LookAt(geonode.Position);
             //cusLine.SubscribeToEvent(E.PostRenderUpdate, args =>
             //{
             //    var drender = scene.GetComponent<DebugRenderer>();
@@ -442,7 +359,7 @@ namespace EngineViewer
                 var infotext = infowindow.GetChild("InfoText") as Text;
                 infowindow.SetVisible(true);
                 infowindow.Position = Context.Input.MousePosition + new IntVector2(10, 10);
-                string todisplay = hoverselected.Node.Name;
+                string todisplay = hoverselected.Node.Name + "\r\n" + hoverselected.WorldBoundingBox.Center;
 
                 var cusComponent = hoverselected.Node.GetComponent<CustomNodeComponent>();
                 if (cusComponent == null)

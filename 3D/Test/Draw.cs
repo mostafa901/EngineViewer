@@ -32,45 +32,42 @@ namespace EngineViewer._3D.Test
 
             var p01 = new Engine_ModelPoint()
             {
-                Position = new Engine_Point(10, 0, 10, 0, PointType.Vertex),
-                TextureCoor = new Engine_Point(0, 0, 0, 0, PointType.Texture),
-                TangentCoor = new Engine_Point(0, 0, 0, 0, PointType.Tangent)
+                EngPosition = new Engine_Point(10, 0, 10, 0, PointType.Vertex),
+                EngNormal = new Engine_Point(0, 1, 0, 0, PointType.Normal),
+                EngTexture = new Engine_Point(0, 0, 0, 0, PointType.Texture),
+                EngTangent = new Engine_Point(0, 0, 0, 0, PointType.Tangent)
             };
 
             var p02 = (new Engine_ModelPoint()
             {
-                Position = new Engine_Point(10, 0, -10, 0, PointType.Vertex),
-                TextureCoor = new Engine_Point(1, 0, 0, 0, PointType.Texture),
-                TangentCoor = new Engine_Point(0, 0, 0, 0, PointType.Tangent)
+                EngPosition = new Engine_Point(10, 0, -10, 0, PointType.Vertex),
+                EngNormal = new Engine_Point(0, 1, 0, 0, PointType.Normal),
+                EngTexture = new Engine_Point(1, 0, 0, 0, PointType.Texture),
+                EngTangent = new Engine_Point(0, 0, 0, 0, PointType.Tangent)
             });
 
             var p03 = (new Engine_ModelPoint()
             {
-                Position = new Engine_Point(-10, 0, -10, 0, PointType.Vertex),
-                TextureCoor = new Engine_Point(1, 1, 0, 0, PointType.Texture),
-                TangentCoor = new Engine_Point(0, 0, 0, 0, PointType.Tangent)
+                EngPosition = new Engine_Point(-10, 0, -10, 0, PointType.Vertex),
+                EngNormal = new Engine_Point(0, 1, 0, 0, PointType.Normal),
+                EngTexture = new Engine_Point(1, 1, 0, 0, PointType.Texture),
+                EngTangent = new Engine_Point(0, 0, 0, 0, PointType.Tangent)
             });
 
             var p04 = (new Engine_ModelPoint()
             {
-                Position = new Engine_Point(-10, 0, 10, 0, PointType.Vertex),
-                TextureCoor = new Engine_Point(0, 1, 0, 0, PointType.Texture),
-                TangentCoor = new Engine_Point(0, 0, 0, 0, PointType.Tangent)
+                EngPosition = new Engine_Point(-10, 0, 10, 0, PointType.Vertex),
+                EngNormal = new Engine_Point(0, 1, 0, 0, PointType.Normal),
+                EngTexture = new Engine_Point(0, 1, 0, 0, PointType.Texture),
+                EngTangent = new Engine_Point(0, 0, 0, 0, PointType.Tangent)
             });
 
-            var triNormal01 = new Engine_Point(0, 1, 0, 0, PointType.Normal);
-            var triNormal02 = new Engine_Point(0, 1, 0, 0, PointType.Normal);
-            Engine_Triangle tri01 = new Engine_Triangle() { V1 = 0, V2 = 1, V3 = 2, Normal = triNormal01 };
-            Engine_Triangle tri02 = new Engine_Triangle() { V1 = 0, V2 = 2, V3 = 3, Normal = triNormal02 };
-            face01.TriangleIndecees = new List<Engine_Triangle>() { tri01, tri02 };
+            Engine_Triangle tri01 = new Engine_Triangle() { V1 = p01, V2 = p02, V3 = p03 };
+            Engine_Triangle tri02 = new Engine_Triangle() { V1 = p03.Clone(), V2 = p04, V3 = p01.Clone() };
+            face01.EngTriangles = new List<Engine_Triangle>() { tri01, tri02 };
 
-            var geo = new EngineViewer.Serializable.Engine_Geometry();
+            var geo = new EngineViewer.Serializable.Engine_Geometry();            
             geo.Engine_Faces.Add(face01);
-            geo.ModelPoints = new List<Engine_ModelPoint>();
-            geo.ModelPoints.Add(p01);
-            geo.ModelPoints.Add(p02);
-            geo.ModelPoints.Add(p03);
-            geo.ModelPoints.Add(p04);
 
             DefaultScene.Instance.CreateCustomShape2(geo);
         }

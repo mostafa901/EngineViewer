@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using EngineViewer._3D.Extention;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using Urho3DNet;
 using Logger = Shared_Utility.Logger.Logger;
@@ -9,17 +11,21 @@ namespace EngineViewer.Serializable
     {
         public string Name { get; set; } = "";
         public Engine_Point Position { get; set; }
+        public List<Engine_ModelPoint> ModelPoints { get; set; }
         public List<Engine_Face> Engine_Faces { get; set; }
         public Engine_Point Rotation { get; set; }
+        public Engine_Point Minimum { get; set; }
+        public Engine_Point Maximum { get; set; }
         public Engine_Point Color { get; set; }
-
         public bool UseLargeIndex = false;
 
         public Engine_Geometry()
         {
             Engine_Faces = new List<Engine_Face>();
+            ModelPoints = new List<Engine_ModelPoint>();
             Position = new Engine_Point() { EngPointType = PointType.Position };
             Rotation = new Engine_Point() { EngPointType = PointType.Rotation };
+
         }
 
         public enum PointType
@@ -40,56 +46,65 @@ namespace EngineViewer.Serializable
 
         public void Scale(float value)
         {
-            foreach (var f in Engine_Faces)
+            foreach (var facePoint in ModelPoints)
             {
-                f.V1.Scale(value);
-                f.V2.Scale(value);
-                f.V3.Scale(value);
-                f.Tx1.Scale(value);
-                f.Tx2.Scale(value);
-                f.Tx3.Scale(value);
+                facePoint.Position.Scale(value);
+                facePoint.TextureCoor.Scale(value);
+            }
+        }
+
+        public struct Engine_ModelPoint
+        {
+            public Engine_Point Position;
+            public Engine_Point TextureCoor;
+            public Engine_Point TangentCoor;
+        }
+
+        public struct Engine_Triangle
+        {
+            public Engine_Point Normal;
+            public int V1;
+            public int V2;
+            public int V3;
+
+            internal int[] GetIndecees()
+            {
+                return new int[] { V1, V2, V3 };
             }
         }
 
         public struct Engine_Face
         {
             public string FaceId;
+            public List<Engine_Triangle> TriangleIndecees;
 
-            public Engine_Point V1;
-            public Engine_Point V2;
-            public Engine_Point V3;
-
-            public Engine_Point N1;
-            public Engine_Point N2;
-            public Engine_Point N3;
-
-            public Engine_Point Tx1;
-            public Engine_Point Tx2;
-            public Engine_Point Tx3;
-
-            public Engine_Point Tan1;
-            public Engine_Point Tan2;
-            public Engine_Point Tan3;
+            public int[] GetIndecees()
+            {
+                List<int> indecees = new List<int>();
+                foreach (var Tri in TriangleIndecees)
+                {
+                    indecees.AddRange(Tri.GetIndecees());
+                }
+                return indecees.ToArray();
+            }
         }
 
-        public float[] ToArray(int faceIndex)
+        public float[] GetFaceFloatPoints(int faceIndex)
         {
             List<float> floatedPoints = new List<float>();
             var face = Engine_Faces[faceIndex];
-            floatedPoints.AddRange(face.V1.ToFloatArray());
-            floatedPoints.AddRange(face.N1.ToFloatArray());
-            if (face.Tx1 != null) floatedPoints.AddRange(face.Tx1.ToFloatArray());
-            if (face.Tan1 != null) floatedPoints.AddRange(face.Tan1.ToFloatArray());
-
-            floatedPoints.AddRange(face.V2.ToFloatArray());
-            floatedPoints.AddRange(face.N2.ToFloatArray());
-            if (face.Tx2 != null) floatedPoints.AddRange(face.Tx2.ToFloatArray());
-            if (face.Tan2 != null) floatedPoints.AddRange(face.Tan2.ToFloatArray());
-
-            floatedPoints.AddRange(face.V3.ToFloatArray());
-            floatedPoints.AddRange(face.N3.ToFloatArray());
-            if (face.Tx2 != null) floatedPoints.AddRange(face.Tx3.ToFloatArray());
-            if (face.Tan2 != null) floatedPoints.AddRange(face.Tan3.ToFloatArray());
+            var triangleCount = face.TriangleIndecees.Count();
+            for (int i = 0; i < triangleCount; i++)
+            {
+                var triangle = face.TriangleIndecees[i];
+                for (int vindex = 0; vindex < 3; vindex++)
+                {
+                    floatedPoints.AddRange(ModelPoints[vindex].Position.ToFloatArray());
+                    floatedPoints.AddRange(triangle.Normal.ToFloatArray());
+                    if (ModelPoints[vindex].TextureCoor != null) floatedPoints.AddRange(ModelPoints[vindex].TextureCoor.ToFloatArray());
+                    if (ModelPoints[vindex].TangentCoor != null) floatedPoints.AddRange(ModelPoints[vindex].TangentCoor.ToFloatArray());
+                }
+            }
 
             return floatedPoints.ToArray(); ;
         }
@@ -99,7 +114,7 @@ namespace EngineViewer.Serializable
             List<float> floatPoints = new List<float>();
             for (int i = 0; i < Engine_Faces.Count; i++)
             {
-                floatPoints.AddRange(ToArray(i));
+                floatPoints.AddRange(GetFaceFloatPoints(i));
             }
             return floatPoints.ToArray();
         }
@@ -112,25 +127,28 @@ namespace EngineViewer.Serializable
 
         public short[] GetShortIndex()
         {
-            List<short> shortIndexPoints = new List<short>();
-            var totalindexcount = Engine_Faces.Count * 3;
-            for (short i = 0; i < totalindexcount; i++)
+            var inds = Engine_Faces.SelectMany(o => o.GetIndecees());
+            List<short> indpoints = new List<short>();
+            int i = 0;
+            foreach (var ind in inds)
             {
-                shortIndexPoints.Add(i);
+                indpoints.Add((short)i);
+                i++;
             }
-
-            return shortIndexPoints.ToArray();
+            return indpoints.ToArray();
         }
 
-        public int[] GetLongIndex()
+        public int[] GetLongIndexData()
         {
-            List<int> longIndexPoints = new List<int>();
-
-            for (short i = 0; i < Engine_Faces.Count * 3; i++)
+            var inds = Engine_Faces.SelectMany(o => o.GetIndecees());
+            List<int> indpoints = new List<int>();
+            int i = 0;
+            foreach (var ind in inds)
             {
-                longIndexPoints.Add(i);
+                indpoints.Add(i);
+                i++;
             }
-            return longIndexPoints.ToArray();
+            return indpoints.ToArray();
         }
 
         public class Engine_Point
@@ -234,14 +252,13 @@ namespace EngineViewer.Serializable
             }
         }
 
-        public uint GetVBSize()
+        public int GetVBSize()
         {
             Logger.Log("Getting VBSize");
-
-            var face = Engine_Faces[0];
-            uint count = 6;
-            if (face.Tan1 != null) count += 4;
-            if (face.Tx1 != null) count += 2;
+ 
+            int count = 6;
+            if (ModelPoints[0].TangentCoor != null) count += 4;
+            if (ModelPoints[0].TextureCoor != null) count += 2;
 
             return count * sizeof(float);
         }
@@ -250,7 +267,7 @@ namespace EngineViewer.Serializable
         {
             Logger.Log("Getting TangentStart");
             var f = Engine_Faces[0];
-            return f.Tx1 == null ? 6 : 8;
+            return ModelPoints[0].TextureCoor == null ? 6 : 8;
         }
 
         private int IndexSize()
@@ -259,20 +276,42 @@ namespace EngineViewer.Serializable
             return UseLargeIndex ? sizeof(int) : sizeof(short);
         }
 
-        internal void GenerateTangents()
+        private void GenerateNormals()
+        {
+            for (int i = 0; i < Engine_Faces.Count; i++)
+            {
+                var f = Engine_Faces[i];
+
+                for (int triangleIndex = 0; triangleIndex < f.TriangleIndecees.Count(); triangleIndex++)
+                {
+                    var triangle = f.TriangleIndecees[triangleIndex];
+
+                    var v1 = ModelPoints[triangle.V1];
+                    var v2 = ModelPoints[triangle.V2];
+                    var v3 = ModelPoints[triangle.V3];
+                    var dv1 = v3.Position.ToVec3() - v1.Position.ToVec3();
+                    var dv2 = v2.Position.ToVec3() - v1.Position.ToVec3();
+                    var normalvec = dv1.CrossProduct(dv2);
+                    triangle.Normal = new Engine_Point(normalvec.ToFloatArray(), PointType.Normal);
+                }
+            }
+        }
+
+        internal bool GenerateTangents()
         {
             Logger.Log("Generating Tangents");
+            UseLargeIndex = true;
             var vbPoints = GetVbArray();
-            if (2146435071 <= Engine_Faces.Count * 3)
+            var IndexData = GetLongIndexData();
+            if (IndexData == null)
             {
-                if (2146435071 <= Engine_Faces.Count * 3) return;
-                UseLargeIndex = true;
-                Urho3D.GenerateTangents(vbPoints, GetVBSize(), GetLongIndex(), IndexSize(), 0, Engine_Faces.Count * 3, TangentStart());
+                Logger.Log($"Maximum Limits Reached for this Model {Name}");
+                return false;
             }
-            else
-            {
-                Urho3D.GenerateTangents(vbPoints, GetVBSize(), GetShortIndex(), IndexSize(), 0, Engine_Faces.Count * 3, TangentStart());
-            }
+
+            Urho3D.GenerateTangents(vbPoints, GetVBSize(), GetLongIndexData(), IndexSize(), 0, IndexData.Length, TangentStart());
+
+
 
             var ps = vbPoints.ToList();
             var facescount = Engine_Faces.Count;
@@ -280,25 +319,24 @@ namespace EngineViewer.Serializable
             for (int i = 0; i < facescount; i++)
             {
                 var f = Engine_Faces[i];
+                var triangleIndecees = f.GetIndecees();
+                for (int tindex = 0; tindex < triangleIndecees.Length; tindex++)
+                {
+                    int rangestart = i * triangleIndecees.Length * 12;
+                    var range = ps.GetRange(rangestart, triangleIndecees.Length * 12);
 
-                int rangestart = i * 36;
-                var range = ps.GetRange(rangestart, 36);
-
-                f.Tan1.X = range[8];
-                f.Tan1.Y = range[9];
-                f.Tan1.Z = range[10];
-                f.Tan1.L = range[11];
-
-                f.Tan2.X = range[8 + 12];
-                f.Tan2.Y = range[9 + 12];
-                f.Tan2.Z = range[10 + 12];
-                f.Tan2.L = range[11 + 12];
-
-                f.Tan3.X = range[8 + 24];
-                f.Tan3.Y = range[9 + 24];
-                f.Tan3.Z = range[10 + 24];
-                f.Tan3.L = range[11 + 24];
+                    for (int p = 0; p < triangleIndecees.Length; p++)
+                    {
+                        var pindex = triangleIndecees[p];
+                        ModelPoints[pindex].TangentCoor.X = range[08 + (12 * p)];
+                        ModelPoints[pindex].TangentCoor.Y = range[09 + (12 * p)];
+                        ModelPoints[pindex].TangentCoor.Z = range[10 + (12 * p)];
+                        ModelPoints[pindex].TangentCoor.L = range[11 + (12 * p)];
+                    }
+                }
             }
+
+            return true;
         }
     }
 }

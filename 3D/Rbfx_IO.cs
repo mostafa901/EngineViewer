@@ -18,7 +18,7 @@ namespace EngineViewer.Actions._3D
 			string path = "";
 			Dispatcher.CurrentDispatcher.Invoke(() =>
 			{
-				path = Utility.IO.system.LoadFile("xml|*.xml|ifc|*.ifc|Collada DAE|*.dae|mdl|*.mdl|FBX|*.fbx|DXF|*.dxf|3DS|*.3ds");
+				path = Utility.IO.system.LoadFiles("xml|*.xml|ifc|*.ifc|Collada DAE|*.dae|mdl|*.mdl|FBX|*.fbx|DXF|*.dxf|3DS|*.3ds").FirstOrDefault();
 				
 				if (path.Contains("}") || path.Contains("{"))
 				{

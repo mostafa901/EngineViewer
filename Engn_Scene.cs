@@ -5,6 +5,7 @@ using EngineViewer.Actions._3D.RbfxUtility;
 using EngineViewer.Actions._3D.UI;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Urho3DNet;
@@ -141,11 +142,12 @@ namespace EngineViewer
 
                 if (ImGuiNet.ImGui.Button("Message"))
                 {
-                  //  string imp = system.LoadFile("Json|*.json");
-                    var imp = system.LoadDirectory();
+                    //  string imp = system.LoadFile("Json|*.json");
+                    var imp = system.LoadFiles("Json|*.json");
                     //if (string.IsNullOrEmpty(imp)) return;
-                    if (imp==null) return;
-                    var jsonFiles = imp.GetFiles("*.json").Select(o=>o.FullName).ToList();
+
+                    if (imp == null) return;
+                    var jsonFiles = imp.ToList();
                     DrawGeometryFromRevit(jsonFiles);
                 }
                 if (ImGuiNet.ImGui.Button("Generate Boxes"))
@@ -160,9 +162,11 @@ namespace EngineViewer
                         if (nodes == null) break;
                         nodes.Remove();
                     }
-
                 }
-
+                if (ImGuiNet.ImGui.Button("Draw"))
+                {
+                    new Draw().DrawRectangle();
+                }
                 DisplayInfoText(hoverselected);
             });
         }
@@ -204,8 +208,6 @@ namespace EngineViewer
             SetupLight();
 
             RootNode = scene.CreateChild("root");
-
-
 
             uiMenu = new UIMenu(RootNode, Selection);
 
@@ -356,6 +358,7 @@ namespace EngineViewer
 
         public void CreateCustomShape2(Serializable.Engine_Geometry geom)
         {
+            var geonode = RootNode.CreateChild("GeoNode");
             Logger.Log($"Generating Geometry [{geom.Name}]");
 
             if (geom.Engine_Faces.Count == 0)
@@ -364,9 +367,16 @@ namespace EngineViewer
                 return;
             }
             geom.Scale((float)DynConstants.FeettoMeter);
-            geom.GenerateTangents();
+            if (!geom.GenerateTangents())
+            {
+                var failChild = geonode.CreateChild($"{geom.Name} Failed");
+                failChild.Position = geom.Position.ToVec3();
+                var model = Cache.GetResource<Model>("Models/Box.mdl");
+                var stcomp = failChild.CreateComponent<StaticModel>();
+                stcomp.SetModel(model);
+                return;
+            }
 
-            var geonode = RootNode.CreateChild("GeoNode");
             if (geom.Rotation != null)
                 geonode.Rotate(new Quaternion(geom.Rotation.ToVec3()));
 
@@ -379,20 +389,22 @@ namespace EngineViewer
 
             foreach (var face in geom.Engine_Faces)
             {
-                cusGeo.DefineVertex(face.V1.ToVec3());
-                cusGeo.DefineNormal(face.N1.ToVec3());
-                cusGeo.DefineTexCoord(face.Tx1.ToVec2());
-                cusGeo.DefineTangent(face.Tan1.ToVec4());
+                var triangles = face.TriangleIndecees;
+                for (int triIndex = 0; triIndex < face.TriangleIndecees.Count; triIndex++)
+                {
+                    var triangle = face.TriangleIndecees[triIndex];
 
-                cusGeo.DefineVertex(face.V2.ToVec3());
-                cusGeo.DefineNormal(face.N2.ToVec3());
-                cusGeo.DefineTexCoord(face.Tx2.ToVec2());
-                cusGeo.DefineTangent(face.Tan2.ToVec4());
-
-                cusGeo.DefineVertex(face.V3.ToVec3());
-                cusGeo.DefineNormal(face.N3.ToVec3());
-                cusGeo.DefineTexCoord(face.Tx3.ToVec2());
-                cusGeo.DefineTangent(face.Tan3.ToVec4());
+                    var verTriIndcees = triangle.GetIndecees();
+                    for (int vIndex = 0; vIndex < verTriIndcees.Length; vIndex++)
+                    {
+                        var point = geom.ModelPoints[verTriIndcees[vIndex]];
+                        Debug.WriteLine(point.Position.GroupId);
+                        cusGeo.DefineVertex(point.Position.ToVec3());
+                        cusGeo.DefineNormal(triangle.Normal.ToVec3());
+                        cusGeo.DefineTexCoord(point.TextureCoor.ToVec2());
+                        cusGeo.DefineTangent(point.TangentCoor.ToVec4());
+                    }
+                }
             }
             cusGeo.Commit();
 

@@ -35,5 +35,15 @@ namespace EngineViewer._3D.Extention
             pointInFloatArr[1] = vec2.Y;
             return pointInFloatArr;
         }
+
+        public static Vector3 Multiply(this Vector3 source,Vector3 value)
+        {
+            var multipliedVector = new Vector3(
+            source.X * value.X,
+            source.Y * value.Y,
+            source.Z * value.Z
+            );
+            return multipliedVector;
+        }
     }
 }

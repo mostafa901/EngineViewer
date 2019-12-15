@@ -118,6 +118,7 @@ namespace EngineViewer
                     uiMenu.Selection = Selection;
                     uiMenu.RootNode = RootNode;
                 }
+
                 if (Context.Input.GetMouseButtonPress(Urho3DNet.MouseButton.MousebLeft))
                 {
                     touraroundboxes(Selection.SelectedModel);
@@ -210,20 +211,10 @@ namespace EngineViewer
             SetupLight();
 
             RootNode = scene.CreateChild("root");
-            RootNode.SubscribeToEvent(E.NodeAdded, args =>
-            {
-                var child = RootNode.GetChildren().LastOrDefault();
-                var stmodels = child.GetComponents<StaticModel>().Cast<StaticModel>();
-                foreach (var stmodel in stmodels)
-                {
-                   
-                }
 
-            });
             uiMenu = new UIMenu(RootNode, Selection);
 
             SetupInfoWindow();
-           
         }
 
         private void SetupLight()
@@ -277,20 +268,21 @@ namespace EngineViewer
 
         public void CreateCustomShape2(Serializable.Engine_Geometry geom)
         {
-            var geonode = RootNode.CreateChild(geom.Name);
             Logger.Log($"Generating Geometry [{geom.Name}]");
-            //   geonode.Position = geom.Position.ToVec3();
+            
             if (geom.Engine_Faces.Count == 0)
             {
                 Logger.Log($"Geometry: [{geom.Name}] has no faces", "", Logger.ErrorType.Warrning);
                 return;
             }
 
+            var geonode = RootNode.CreateChild(geom.Name);
+            geonode.Scale(geom.Flip.ToVec3());
             if (geom.Rotation != null)
                 geonode.Rotate(new Quaternion(geom.Rotation.ToVec3()));
 
+            geom.GenerateNormals();
 
-#if true
             if (!geom.GenerateTangents())
             {
                 var failChild = geonode.CreateChild($"{geom.Name} Failed");
@@ -300,25 +292,24 @@ namespace EngineViewer
                 stcomp.SetModel(model);
                 return;
             }
-#endif
 
             float scaleValue = (float)DynConstants.FeettoMeter;
             geonode.Scale(new Vector3(scaleValue, scaleValue, scaleValue));
 
-
             Material mat = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");
             if (geom.Color != null)
                 mat = Material_Ext.ColoredMaterial(geom.GetColor());
-            mat.CullMode = CullMode.CullCw;
-                var cus = geonode.CreateComponent<CustomNodeComponent>();
-                cus.OriginalMaterial = mat;
+            mat.CullMode = geom.GeoCullModel;
+
+            var cus = geonode.CreateComponent<CustomNodeComponent>();
+            cus.OriginalMaterial = mat;
 
             var cusGeo = geonode.CreateComponent<CustomGeometry>();
-            cusGeo.CastShadows = true;
+            // cusGeo.CastShadows = true;
 
             cusGeo.BeginGeometry(0, PrimitiveType.TriangleList);
-            cusGeo.SetMaterial(mat);
-            Logger.Log("Begine Geometry");
+        //    cusGeo.SetMaterial(mat);
+            Logger.Log("Begin Geometry");
             foreach (var face in geom.Engine_Faces)
             {
                 var triangles = face.EngTriangles;
@@ -333,6 +324,7 @@ namespace EngineViewer
                         cusGeo.DefineNormal(engpoint.EngNormal.ToVec3());
                         cusGeo.DefineTexCoord(engpoint.EngTexture.ToVec2());
                         cusGeo.DefineTangent(engpoint.EngTangent.ToVec4());
+                        cusGeo.DefineColor(engpoint.EngColor.ToColor());
                     }
                 }
             }

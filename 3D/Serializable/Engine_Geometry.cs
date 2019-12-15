@@ -1,4 +1,5 @@
 ﻿using EngineViewer._3D.Extention;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Urho3DNet;
@@ -17,12 +18,16 @@ namespace EngineViewer.Serializable
         public Engine_Point Maximum { get; set; }
         public Engine_Point Color { get; set; }
         public bool UseLargeIndex = false;
+        public CullMode GeoCullModel { get; set; }
+        public Engine_Point Flip { get; set; }
+
 
         public Engine_Geometry()
         {
             Engine_Faces = new List<Engine_Face>();
             Position = new Engine_Point() { EngPointType = PointType.Position };
             Rotation = new Engine_Point() { EngPointType = PointType.Rotation };
+            GeoCullModel = CullMode.CullCcw;
         }
 
         public enum PointType
@@ -204,6 +209,7 @@ namespace EngineViewer.Serializable
                 var dv1 = V3.EngPosition.ToVec3() - V1.EngPosition.ToVec3();
                 var dv2 = V2.EngPosition.ToVec3() - V1.EngPosition.ToVec3();
                 var normalvec = dv1.CrossProduct(dv2);
+                normalvec = normalvec.Multiply(V3.EngNormal.ToVec3());
                 V1.EngNormal = new Engine_Point(normalvec.ToFloatArray(), PointType.Normal);
                 V2.EngNormal = new Engine_Point(normalvec.ToFloatArray(), PointType.Normal);
                 V3.EngNormal = new Engine_Point(normalvec.ToFloatArray(), PointType.Normal);
@@ -308,20 +314,10 @@ namespace EngineViewer.Serializable
             return UseLargeIndex ? sizeof(int) : sizeof(short);
         }
 
-        private void GenerateNormals()
+        public void GenerateNormals()
         {
-#if false
-            for (int i = 0; i < Engine_Faces.Count; i++)
-            {
-                var f = Engine_Faces[i];
-                var trianglesCount = f.EngTriangles.Count();
-                for (int triangleIndex = 0; triangleIndex < trianglesCount; triangleIndex++)
-                {
-                    var triangle = f.EngTriangles[triangleIndex];
-                    triangle.GenerateNormal();
-                }
-            }
-#endif
+ 
+            Logger.Log("Generating Normals");
 
             foreach (var engFace in Engine_Faces)
             {
@@ -337,7 +333,6 @@ namespace EngineViewer.Serializable
         {
             Logger.Log("Generating Tangents");
             UseLargeIndex = true;
-            GenerateNormals();
             var vbPoints = GetVbArray();
             var IndexData = GetLongIndexData();
             var tangentPosition = TangentStart();
@@ -496,6 +491,11 @@ namespace EngineViewer.Serializable
             public override string ToString()
             {
                 return $"{X}, {Y}, {Z}";
+            }
+
+            public Color ToColor()
+            {
+                return new Color(X, Y, Z, L);
             }
         }
     }

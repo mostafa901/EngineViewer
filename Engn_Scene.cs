@@ -210,10 +210,20 @@ namespace EngineViewer
             SetupLight();
 
             RootNode = scene.CreateChild("root");
+            RootNode.SubscribeToEvent(E.NodeAdded, args =>
+            {
+                var child = RootNode.GetChildren().LastOrDefault();
+                var stmodels = child.GetComponents<StaticModel>().Cast<StaticModel>();
+                foreach (var stmodel in stmodels)
+                {
+                   
+                }
 
+            });
             uiMenu = new UIMenu(RootNode, Selection);
 
             SetupInfoWindow();
+           
         }
 
         private void SetupLight()
@@ -278,8 +288,8 @@ namespace EngineViewer
 
             if (geom.Rotation != null)
                 geonode.Rotate(new Quaternion(geom.Rotation.ToVec3()));
-           
-            
+
+
 #if true
             if (!geom.GenerateTangents())
             {
@@ -294,13 +304,18 @@ namespace EngineViewer
 
             float scaleValue = (float)DynConstants.FeettoMeter;
             geonode.Scale(new Vector3(scaleValue, scaleValue, scaleValue));
-            
+
 
             Material mat = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");
             if (geom.Color != null)
-                mat = Material_Ext.SetMaterialFromColor(geom.GetColor(), true);
-           
+                mat = Material_Ext.ColoredMaterial(geom.GetColor());
+            mat.CullMode = CullMode.CullCw;
+                var cus = geonode.CreateComponent<CustomNodeComponent>();
+                cus.OriginalMaterial = mat;
+
             var cusGeo = geonode.CreateComponent<CustomGeometry>();
+            cusGeo.CastShadows = true;
+
             cusGeo.BeginGeometry(0, PrimitiveType.TriangleList);
             cusGeo.SetMaterial(mat);
             Logger.Log("Begine Geometry");

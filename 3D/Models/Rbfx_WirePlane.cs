@@ -82,7 +82,7 @@ namespace EngineViewer.Actions._3D.Models
 
             geom.BeginGeometry(0, PrimitiveType.LineList);
 
-            geom.SetMaterial(Material_Ext.SetMaterialFromColor(color, true));
+            geom.SetMaterial(Material_Ext.noLitFromColor(color, true));
 
             var halfSize = Size / 2;
             for (int i = -halfSize; i <= halfSize; i++)
@@ -110,7 +110,7 @@ namespace EngineViewer.Actions._3D.Models
             geom = Node.CreateComponent<CustomGeometry>();
             geom.BeginGeometry(0, PrimitiveType.LineList);
 
-            geom.SetMaterial(0, Material_Ext.SetMaterialFromColor(Color.White, true));
+            geom.SetMaterial(0, Material_Ext.noLitFromColor(Color.White, true));
 
             for (int i = -halfSize; i <= halfSize; i++)
             {

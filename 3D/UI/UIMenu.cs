@@ -94,7 +94,8 @@ namespace EngineViewer.Actions._3D.UI
 
                             if (ImGui.BeginMenu("CullMode"))
                             {
-                                var mat = ((dynamic)Selection.SelectedModel).GetMaterial();
+                             var cusnode =   Selection.SelectedModel.Node.GetComponent<CustomNodeComponent>(true);
+                                var mat = cusnode.OriginalMaterial;
                                 if (ImGui.MenuItem("Ccw"))
                                 {
                                     if (mat != null)
@@ -105,6 +106,12 @@ namespace EngineViewer.Actions._3D.UI
                                 {
                                     if (mat != null)
                                         mat.CullMode = CullMode.CullCw;
+                                    ActionMenu = menuaction.none;
+                                }
+                                if (ImGui.MenuItem("None"))
+                                {
+                                    if (mat != null)
+                                        mat.CullMode = CullMode.CullNone;
                                     ActionMenu = menuaction.none;
                                 }
                                 ImGui.EndMenu();

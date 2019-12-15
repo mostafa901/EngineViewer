@@ -1,5 +1,4 @@
 ﻿using EngineViewer._3D.Extention;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Urho3DNet;
@@ -53,7 +52,7 @@ namespace EngineViewer.Serializable
             }
         }
 
-        public struct Engine_ModelPoint
+        public class Engine_ModelPoint
         {
             public Engine_Point EngPosition;
             public Engine_Point EngNormal;
@@ -132,7 +131,7 @@ namespace EngineViewer.Serializable
             }
         }
 
-        public struct Engine_Triangle
+        public class Engine_Triangle
         {
             public Engine_ModelPoint V1;
             public Engine_ModelPoint V2;
@@ -205,7 +204,8 @@ namespace EngineViewer.Serializable
                 var dv1 = V3.EngPosition.ToVec3() - V1.EngPosition.ToVec3();
                 var dv2 = V2.EngPosition.ToVec3() - V1.EngPosition.ToVec3();
                 var normalvec = dv1.CrossProduct(dv2);
-                V1.EngNormal = V2.EngNormal =
+                V1.EngNormal = new Engine_Point(normalvec.ToFloatArray(), PointType.Normal);
+                V2.EngNormal = new Engine_Point(normalvec.ToFloatArray(), PointType.Normal);
                 V3.EngNormal = new Engine_Point(normalvec.ToFloatArray(), PointType.Normal);
             }
 
@@ -215,7 +215,7 @@ namespace EngineViewer.Serializable
             }
         }
 
-        public struct Engine_Face
+        public class Engine_Face
         {
             public string FaceId;
             public List<Engine_Triangle> EngTriangles;
@@ -310,6 +310,7 @@ namespace EngineViewer.Serializable
 
         private void GenerateNormals()
         {
+#if false
             for (int i = 0; i < Engine_Faces.Count; i++)
             {
                 var f = Engine_Faces[i];
@@ -320,12 +321,23 @@ namespace EngineViewer.Serializable
                     triangle.GenerateNormal();
                 }
             }
+#endif
+
+            foreach (var engFace in Engine_Faces)
+            {
+                foreach (var triangle in engFace.EngTriangles)
+                {
+                    var trianglesCount = engFace.EngTriangles.Count();
+                    triangle.GenerateNormal();
+                }
+            }
         }
 
         internal bool GenerateTangents()
         {
             Logger.Log("Generating Tangents");
             UseLargeIndex = true;
+            GenerateNormals();
             var vbPoints = GetVbArray();
             var IndexData = GetLongIndexData();
             var tangentPosition = TangentStart();

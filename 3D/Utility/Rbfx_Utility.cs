@@ -56,7 +56,7 @@ namespace EngineViewer.Actions._3D.RbfxUtility
                     decal = targetNode.CreateComponent<DecalSet>();
                     var decalse = new DecalSet(app.Context);
 
-                    decal.Material = Material_Ext.SetMaterialFromColor(new Color(1, 0, 0, .5f), false);
+                    decal.Material = Material_Ext.noLitFromColor(new Color(1, 0, 0, .5f), false);
 
                     //cache.GetMaterial("Materials/UrhoDecal.xml");
                 }

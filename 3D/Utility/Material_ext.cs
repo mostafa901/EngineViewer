@@ -9,7 +9,7 @@ namespace EngineViewer.Actions._3D.RbfxUtility
 {
 	public static class Material_Ext
 	{
-		public static Material SetMaterialFromColor(Color color, bool unlit = true)
+		public static Material noLitFromColor(Color color, bool unlit = true)
 		{
 			var material = new Material(DefaultScene.scene.Context);
 			var cache = DefaultScene.scene.Context.Cache;
@@ -23,6 +23,13 @@ namespace EngineViewer.Actions._3D.RbfxUtility
 
 			return material;
 		}
+
+        public static Material ColoredMaterial(Color color)
+        {
+            var material = DefaultScene.scene.Context.Cache.GetResource<Material>("Materials/Colored.xml").Clone();
+            material.SetShaderParameter("MatDiffColor", color);
+            return material;
+        }
 
 
 		#region SelectedMaterial

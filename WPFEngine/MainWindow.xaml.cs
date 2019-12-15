@@ -30,7 +30,10 @@ namespace WPFEngine
             Shared_Utility.Logger.Logger.Initialize(errorpath);
 
             InitializeComponent();
-
+            Closing += (s, e) =>
+            {
+                Utility.IO.system.KillProcess("WPFEngine");
+            };
             Loaded += delegate
             {
                 DefaultScene.Parent = rbfxHost.Handle;

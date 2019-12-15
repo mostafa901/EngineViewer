@@ -16,7 +16,7 @@ namespace EngineViewer._3D.Test
             var linechild = Parent.CreateChild("Line");
             var cusLine = linechild.CreateComponent<CustomGeometry>();
             cusLine.BeginGeometry(0, PrimitiveType.LineList);
-            var mat = Material_Ext.SetMaterialFromColor(color, true);
+            var mat = Material_Ext.noLitFromColor(color, true);
             // mat.FillMode = FillMode.FillWireframe;
 
             cusLine.SetMaterial(mat);

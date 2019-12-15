@@ -14,7 +14,10 @@ namespace EngineViewer.Actions._3D.UI
         {
             if (app.Context.UI.Cursor.IsVisible())
             {
-                if (ImGui.IsAnyItemHovered()) return null;
+                if (ImGui.IsAnyItemHovered())
+                { 
+                    return null;
+                }
                 //Select element
                 Vector3 hitposition;
                 Drawable model;
@@ -50,7 +53,9 @@ namespace EngineViewer.Actions._3D.UI
             if (model != null)
             {
                 Originalmat = ((dynamic)model).GetMaterial();
-                ((dynamic)model).SetMaterial(Material_Ext.SelectedMaterial);
+                var mat = Material_Ext.SelectedMaterial;
+                mat.CullMode = Originalmat.CullMode;
+                ((dynamic)model).SetMaterial(mat);
                 return model;
             }
 

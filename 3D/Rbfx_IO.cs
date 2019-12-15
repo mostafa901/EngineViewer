@@ -18,7 +18,7 @@ namespace EngineViewer.Actions._3D
 			string path = "";
 			Dispatcher.CurrentDispatcher.Invoke(() =>
 			{
-				path = Utility.IO.system.LoadFiles("xml|*.xml|ifc|*.ifc|Collada DAE|*.dae|mdl|*.mdl|FBX|*.fbx|DXF|*.dxf|3DS|*.3ds").FirstOrDefault();
+				path = Utility.IO.system.LoadFiles("bin|*.bin|xml|*.xml|ifc|*.ifc|Collada DAE|*.dae|mdl|*.mdl|FBX|*.fbx|DXF|*.dxf|3DS|*.3ds").FirstOrDefault();
 				
 				if (path.Contains("}") || path.Contains("{"))
 				{
@@ -32,7 +32,7 @@ namespace EngineViewer.Actions._3D
 				}
 				if (!string.IsNullOrEmpty(path))
 				{
-					if (!path.ToLower().EndsWith("xml"))
+					if (!path.ToLower().EndsWith("xml") || !path.ToLower().EndsWith("bin"))
 					{
 						string assetport = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 						Process p = null;
@@ -62,7 +62,7 @@ namespace EngineViewer.Actions._3D
 			}
 
 			Node modelnode = RootNode.CreateChild("");
-			modelnode.LoadXML(path);
+			modelnode.LoadFile(path);
 			modelnode.Name = Path.GetFileNameWithoutExtension(path);
             var stmodels = modelnode.GetComponents<StaticModel>(true).Cast<StaticModel>();
             foreach (var stm in stmodels)
@@ -98,17 +98,39 @@ namespace EngineViewer.Actions._3D
 			});
 
 			if (string.IsNullOrEmpty(path)) return;
-			var xmlFile = new XMLFile(scene.Context);
-			XMLElement rootElem = xmlFile.CreateRoot("Root");
-			if (!scene.SaveXML(rootElem))
-			{
-				new MessageBox(scene.Context, "Couldn't Save File", "Save Error");
-				return;
-			}
 
-			xmlFile.SaveFile(path);
-			//Task.Run(async () => await cam.MoveToSelected(max, modelnode.Position, 50));
-		}
+
+           
+            if (!scene.SaveFile(path))
+            {
+                new MessageBox(scene.Context, "Couldn't Save File", "Save Error");
+                return;
+            }
+
+#if false
+            var jsonFile = new JSONFile(scene.Context);
+            var rootElem = jsonFile.GetRoot();
+            if (!scene.SaveJSON(rootElem))
+            {
+                new MessageBox(scene.Context, "Couldn't Save File", "Save Error");
+                return;
+            }
+
+            jsonFile.SaveFile(path); 
+#endif
+#if false
+            var xmlFile = new XMLFile(scene.Context);
+            XMLElement rootElem = xmlFile.CreateRoot("Root");
+            if (!scene.SaveXML(rootElem))
+            {
+                new MessageBox(scene.Context, "Couldn't Save File", "Save Error");
+                return;
+            }
+
+            xmlFile.SaveFile(path); 
+#endif
+            //Task.Run(async () => await cam.MoveToSelected(max, modelnode.Position, 50));
+        }
 
 	}
 

@@ -100,7 +100,7 @@ namespace EngineViewer
         {
             SubscribeToEvent(E.Update, args =>
             {
-                float moveSpeed = 10;
+                float moveSpeed = 5;
                 uiMenu.RenderMenu();
 
                 //what to do if selection is nothing
@@ -269,7 +269,7 @@ namespace EngineViewer
         public void CreateCustomShape2(Serializable.Engine_Geometry geom)
         {
             Logger.Log($"Generating Geometry [{geom.Name}]");
-            
+
             if (geom.Engine_Faces.Count == 0)
             {
                 Logger.Log($"Geometry: [{geom.Name}] has no faces", "", Logger.ErrorType.Warrning);
@@ -280,9 +280,10 @@ namespace EngineViewer
             geonode.Scale(geom.Flip.ToVec3());
             if (geom.Rotation != null)
                 geonode.Rotate(new Quaternion(geom.Rotation.ToVec3()));
+            float scaleValue = (float)DynConstants.FeettoMeter;
+            geonode.Scale(new Vector3(scaleValue, scaleValue, scaleValue));
 
             geom.GenerateNormals();
-
             if (!geom.GenerateTangents())
             {
                 var failChild = geonode.CreateChild($"{geom.Name} Failed");
@@ -293,50 +294,55 @@ namespace EngineViewer
                 return;
             }
 
-            float scaleValue = (float)DynConstants.FeettoMeter;
-            geonode.Scale(new Vector3(scaleValue, scaleValue, scaleValue));
+            var faceColorGroups = geom.Engine_Faces.GroupBy(o => o.FaceColor.ToString());
 
-            Material mat = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");
-            if (geom.Color != null)
-                mat = Material_Ext.ColoredMaterial(geom.GetColor());
-            mat.CullMode = geom.GeoCullModel;
-
-            var cus = geonode.CreateComponent<CustomNodeComponent>();
-            cus.OriginalMaterial = mat;
-
-            var cusGeo = geonode.CreateComponent<CustomGeometry>();
-            // cusGeo.CastShadows = true;
-
-            cusGeo.BeginGeometry(0, PrimitiveType.TriangleList);
-        //    cusGeo.SetMaterial(mat);
-            Logger.Log("Begin Geometry");
-            foreach (var face in geom.Engine_Faces)
+            foreach (var faceColorGroup in faceColorGroups)
             {
-                var triangles = face.EngTriangles;
-                var trianglesCount = face.EngTriangles.Count;
-                for (int triIndex = 0; triIndex < trianglesCount; triIndex++)
+
+                var facechild = geonode.CreateChild("Face_Color");
+                //Material mat = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");
+                Material mat = null;
+                var faceColor = faceColorGroup.ElementAt(0).FaceColor;
+                if (faceColor.L != 1)
                 {
-                    var triangle = triangles[triIndex];
-                    var triPoints = triangle.GetPoints();
-                    foreach (var engpoint in triPoints)
+                    mat = Material_Ext.TransParentMaterial(faceColor.ToColor());
+                }
+                else
+                {
+                    mat = Material_Ext.ColoredMaterial(faceColor.ToColor());
+                }
+                mat.CullMode = geom.GeoCullModel;
+
+                var cus = facechild.CreateComponent<CustomNodeComponent>();
+                cus.OriginalMaterial = mat;
+
+                var cusGeo = facechild.CreateComponent<CustomGeometry>();
+                // cusGeo.CastShadows = true;
+
+                cusGeo.BeginGeometry(0, PrimitiveType.TriangleList);
+                cusGeo.SetMaterial(mat);
+
+                Logger.Log("Begin Geometry");
+                foreach (var face in faceColorGroup)
+                {
+                    var triangles = face.EngTriangles;
+                    var trianglesCount = face.EngTriangles.Count;
+                    for (int triIndex = 0; triIndex < trianglesCount; triIndex++)
                     {
-                        cusGeo.DefineVertex(engpoint.EngPosition.ToVec3());
-                        cusGeo.DefineNormal(engpoint.EngNormal.ToVec3());
-                        cusGeo.DefineTexCoord(engpoint.EngTexture.ToVec2());
-                        cusGeo.DefineTangent(engpoint.EngTangent.ToVec4());
-                        cusGeo.DefineColor(engpoint.EngColor.ToColor());
+                        var triangle = triangles[triIndex];
+                        var triPoints = triangle.GetPoints();
+                        foreach (var engpoint in triPoints)
+                        {
+                            cusGeo.DefineVertex(engpoint.EngPosition.ToVec3());
+                            cusGeo.DefineNormal(engpoint.EngNormal.ToVec3());
+                            cusGeo.DefineTexCoord(engpoint.EngTexture.ToVec2());
+                            cusGeo.DefineTangent(engpoint.EngTangent.ToVec4());
+                        }
                     }
                 }
+                cusGeo.Commit();
+                Logger.Log("End Geometry");
             }
-            cusGeo.Commit();
-            Logger.Log("End Geometry");
-
-            cam.LookAt(geonode.Position);
-            //cusLine.SubscribeToEvent(E.PostRenderUpdate, args =>
-            //{
-            //    var drender = scene.GetComponent<DebugRenderer>();
-            //    cusLine.DrawDebugGeometry(drender, true);
-            //});
         }
 
         private Window infowindow = null;

@@ -17,15 +17,9 @@ namespace EngineViewer._3D.Test
             boxesNode.SetTemporary(true);
 			const int numObjects = 2000;
 			var boxModel = RootNode.Context.Cache.GetResource<Urho3DNet.Model>("Models/Box.mdl");
-			var boxMaterial = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");
-			//var boxMaterial = new Material(RootNode.Context);
-			//boxMaterial.SetShaderParameter("MatDiffColor", Color.Red);
-
-			//var mat = new Material(RootNode.Context);
-			//mat.SetTechnique(0, RootNode.Cache.GetResource<Technique>("Techniques/Diff.xml"));
-			//mat.SetTexture(TextureUnit.TuDiffuse, RootNode.Cache.GetResource<Texture>("Textures/StoneDiffuse.dds"));
-			//mat.SetShaderParameter("MatSpecColor", new Vector4(.3f, .3f, .3f, 16));
-		//	boxModel.SetMaterial(mat);
+			//var boxMaterial = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");
+			var boxMaterial = Material_Ext.TransParentMaterial(new Color(1,0,0,.5f));
+	 
 
 			for (var i = 0; i < numObjects; ++i)
 			{

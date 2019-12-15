@@ -225,7 +225,12 @@ namespace EngineViewer.Serializable
         {
             public string FaceId;
             public List<Engine_Triangle> EngTriangles;
+            public Engine_Point FaceColor { get; set; }
 
+            public Engine_Face()
+            {
+                FaceColor = new Engine_Point(.28f, .28f, .28f, 1, PointType.Color);
+            }
             public void Scale(Vector3 value)
             {
                 var trianglesCount = EngTriangles.Count;
@@ -316,7 +321,7 @@ namespace EngineViewer.Serializable
 
         public void GenerateNormals()
         {
- 
+
             Logger.Log("Generating Normals");
 
             foreach (var engFace in Engine_Faces)
@@ -408,6 +413,21 @@ namespace EngineViewer.Serializable
                 Y = floatArray[1];
                 Z = floatArray[2];
                 EngPointType = pType;
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (!(obj is Engine_Point))
+                    return base.Equals(obj);
+                else
+                {
+                    var engpoint = obj as Engine_Point;
+                    if (engpoint.X == X &&
+                    engpoint.Y == Y &&
+                    engpoint.Z == Z &&
+                    engpoint.L == L) return true;
+                    else return false;
+                }
             }
 
             public int GetPointSize()

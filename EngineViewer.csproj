@@ -81,7 +81,7 @@
     <Compile Include="3D\UI\UIMenu.cs" />
     <Compile Include="3D\Utility\CustomNodeComponent.cs" />
     <Compile Include="3D\Utility\Engine_Math.cs" />
-    <Compile Include="3D\Utility\Material_ext.cs" />
+    <Compile Include="3D\Utility\Material_Ext.cs" />
     <Compile Include="3D\Utility\Node_Ext.cs" />
     <Compile Include="3D\Utility\Rbfx_Utility.cs" />
     <Compile Include="Engn_Scene.cs" />

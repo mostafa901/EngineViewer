@@ -96,82 +96,13 @@ namespace EngineViewer
             RunOnce();
         }
 
-        private void SubscribeEvents()
+        private void SetupResourcePaths()
         {
-            SubscribeToEvent(E.Update, args =>
-            {
-                float moveSpeed = 5;
-                uiMenu.RenderMenu();
+            //SetupResources Location
 
-                //what to do if selection is nothing
-                onUnSelect();
-
-                //camera movement
-                if (Input.GetKeyPress(Key.KeyShift)) moveSpeed *= .5f;
-                cam.FirstPersonCamera(this, Context.Time.TimeStep, moveSpeed, Selection?.SelectedModel?.Node);
-
-                //CheckSelection
-                Drawable hoverselected = null;
-                if (uiMenu.ActionMenu == menuaction.none)
-                {
-                    hoverselected = Selection.SelectGeometry(this, scene, cam);
-                    uiMenu.Selection = Selection;
-                    uiMenu.RootNode = RootNode;
-                }
-
-                if (Context.Input.GetMouseButtonPress(Urho3DNet.MouseButton.MousebLeft))
-                {
-                    touraroundboxes(Selection.SelectedModel);
-                }
-
-                //invoke any actions in the list
-                if (Actions.Count > 0)
-                {
-                    var runningActions = Actions.ToList();
-                    Actions.Clear();
-                    for (int i = 0; i < runningActions.Count; i++)
-                    {
-                        runningActions[i].Invoke();
-                    }
-                }
-
-                if (Context.Input.GetMouseButtonClick(Urho3DNet.MouseButton.MousebRight))
-                {
-                    if (Selection.SelectedModel != null)
-                    {
-                        uiMenu.ActionMenu = menuaction.ObjectContext;
-                    }
-                }
-
-                if (ImGuiNet.ImGui.Button("Message"))
-                {
-                    //  string imp = system.LoadFile("Json|*.json");
-                    var imp = system.LoadFiles("Json|*.json");
-                    //if (string.IsNullOrEmpty(imp)) return;
-
-                    if (imp == null) return;
-                    var jsonFiles = imp.ToList();
-                    DrawGeometryFromRevit(jsonFiles);
-                }
-                if (ImGuiNet.ImGui.Button("Generate Boxes"))
-                {
-                    new Rbfx_RandomBoxes(RootNode);
-                }
-                if (ImGuiNet.ImGui.Button("Remove All Boxes"))
-                {
-                    while (true)
-                    {
-                        var nodes = RootNode.GetChild("Boxes", true);
-                        if (nodes == null) break;
-                        nodes.Remove();
-                    }
-                }
-                if (ImGuiNet.ImGui.Button("Draw"))
-                {
-                    new Draw().DrawRectangle();
-                }
-                DisplayInfoText(hoverselected);
-            });
+            Context.Cache.AddResourceDir(@"c:\windows\fonts");
+            Context.Cache.AddResourceDir(@"D:\Revit_API\Downloaded_Library\Source\rbfx\bin\CoreData");
+            Context.UI.Cursor = new Urho3DNet.Cursor(Context);
         }
 
         public void RunOnce()
@@ -244,19 +175,152 @@ namespace EngineViewer
             Context.Renderer.SetViewport(0, viewport);
 
             //todo: not sure how setclipplane works
-            //Graphics.SetClipPlane(true, Plane.Up, new Matrix3x4(Vector3.Zero, Quaternion.IDENTITY, 200f));
-            cam.camera.ClipPlane = new Plane(Vector3.Up, new Vector3(0, 1, 0));
+            // cam.camera.ClipPlane = new Plane(new Vector3(),new Vector3(5,0,5),new Vector3(5,5,5));
+            cam.camera.UseClipping = true;
         }
 
-        private void SetupResourcePaths()
+       
+       private void SubscribeEvents()
         {
-            //SetupResources Location
+            float[] sliderV1X = new float[1];
+            float[] sliderV1Y = new float[1];
+            float[] sliderV1Z = new float[1];
+            Vector3 vector01 = new Vector3();
+            float[] sliderV2X = new float[1];
+            float[] sliderV2Y = new float[1];
+            float[] sliderV2Z = new float[1];
+            Vector3 vector02 = new Vector3();
+            float[] sliderV3X = new float[1];
+            float[] sliderV3Y = new float[1];
+            float[] sliderV3Z = new float[1];
+            Vector3 vector03 = new Vector3();
+            var plan = new Engn_Plan(scene);
+            plan.planeNode.Rotate(new Quaternion( new Vector3(90, 0, 0)));
+              plan = new Engn_Plan(scene);
+            plan.planeNode.Rotate(new Quaternion(    new Vector3(0, 90, 0)));
+            plan = new Engn_Plan(scene);
+            plan.planeNode.Rotate(new Quaternion(new Vector3(0, 0, 90)));
+            SubscribeToEvent(E.Update, args =>
+            {
+                float moveSpeed = 5;
+                uiMenu.RenderMenu();
 
-            Context.Cache.AddResourceDir(@"c:\windows\fonts");
-            Context.Cache.AddResourceDir(@"D:\Revit_API\Downloaded_Library\Source\rbfx\bin\CoreData");
-            Context.UI.Cursor = new Urho3DNet.Cursor(Context);
+                //what to do if selection is nothing
+                onUnSelect();
+
+                //camera movement
+                if (Input.GetKeyPress(Key.KeyShift)) moveSpeed *= .5f;
+                cam.FirstPersonCamera(this, Context.Time.TimeStep, moveSpeed, Selection?.SelectedModel);
+
+                //CheckSelection
+                Drawable hoverselected = null;
+                if (uiMenu.ActionMenu == menuaction.none)
+                {
+                    hoverselected = Selection.SelectGeometry(this, scene, cam);
+                    uiMenu.Selection = Selection;
+                    uiMenu.RootNode = RootNode;
+                }
+
+                if (Context.Input.GetMouseButtonPress(Urho3DNet.MouseButton.MousebLeft))
+                {
+                    touraroundboxes(Selection.SelectedModel);
+                }
+
+                //invoke any actions in the list
+                if (Actions.Count > 0)
+                {
+                    var runningActions = Actions.ToList();
+                    Actions.Clear();
+                    for (int i = 0; i < runningActions.Count; i++)
+                    {
+                        runningActions[i].Invoke();
+                    }
+                }
+
+                if (Context.Input.GetMouseButtonClick(Urho3DNet.MouseButton.MousebRight))
+                {
+                    if (Selection.SelectedModel != null)
+                    {
+                        uiMenu.ActionMenu = menuaction.ObjectContext;
+                    }
+                }
+
+                if (ImGuiNet.ImGui.Button("Message"))
+                {
+                    //  string imp = system.LoadFile("Json|*.json");
+                    var imp = system.LoadFiles("Json|*.json");
+                    //if (string.IsNullOrEmpty(imp)) return;
+
+                    if (imp == null) return;
+                    var jsonFiles = imp.ToList();
+                    DrawGeometryFromRevit(jsonFiles);
+                }
+                if (ImGuiNet.ImGui.Button("Generate Boxes"))
+                {
+                    new Rbfx_RandomBoxes(RootNode);
+                }
+                if (ImGuiNet.ImGui.Button("Remove All Boxes"))
+                {
+                    while (true)
+                    {
+                        var nodes = RootNode.GetChild("Boxes", true);
+                        if (nodes == null) break;
+                        nodes.Remove();
+                    }
+                }
+                
+                if (ImGuiNet.ImGui.SliderFloat("v1.X",sliderV1X, -100,100))
+                {
+                    vector01.X = sliderV1X[0];
+                  //  vector01 = new Vector3(sliderV1X[0], sliderV1X[0], sliderV1X[0]);
+
+                }
+                if (ImGuiNet.ImGui.SliderFloat("v1.Y", sliderV1Y, -100, 100))
+                {
+                    vector01.Y = sliderV1Y[0];
+                }
+                if (ImGuiNet.ImGui.SliderFloat("v1.Z", sliderV1Z, -100, 100))
+                {
+                    vector01.Z = sliderV1Z[0];
+                }
+               
+                if (ImGuiNet.ImGui.SliderFloat("v2.X", sliderV2X, -100, 100))
+                {
+                    vector02.X = sliderV2X[0];
+                  //  vector02 = new Vector3(sliderV2X[0], sliderV2X[0], sliderV2X[0]);
+
+                }
+                if (ImGuiNet.ImGui.SliderFloat("v2.Y", sliderV2Y, -100, 100))
+                {
+                    vector02.Y = sliderV2Y[0];
+                }
+                if (ImGuiNet.ImGui.SliderFloat("v2.Z", sliderV2Z, -100, 100))
+                {
+                    vector02.Z = sliderV2Z[0];
+                }
+               
+                if (ImGuiNet.ImGui.SliderFloat("v3.X", sliderV3X, -100, 100))
+                {
+                    vector03.X = sliderV3X[0];
+                  //  vector03 = new Vector3(sliderV3X[0], sliderV3X[0], sliderV3X[0]);
+                }
+                if (ImGuiNet.ImGui.SliderFloat("v3.Y", sliderV3Y, -100, 100))
+                {
+                    vector03.Y = sliderV3Y[0];
+                }
+                if (ImGuiNet.ImGui.SliderFloat("v3.Z", sliderV3Z, -100, 100))
+                {
+                    vector03.Z = sliderV3Z[0];
+                }
+
+                cam.camera.ClipPlane = new Plane(new Vector3(0,1,0), vector02);
+                if (ImGuiNet.ImGui.Button("Draw"))
+                {
+                    new Draw().DrawRectangle();
+                }
+                DisplayInfoText(hoverselected);
+            });
         }
-
         public void DrawGeometryFromRevit(List<string> jsonFiles)
         {
             foreach (var jsonFilePath in jsonFiles)
@@ -347,6 +411,7 @@ namespace EngineViewer
                 cusGeo.SetMaterial(mat);
                 
                 Logger.Log("Begin Geometry");
+                List<Vector3> vcs = new List<Vector3>();
                 foreach (var face in faceColorGroup)
                 {
                     var triangles = face.EngTriangles;
@@ -361,13 +426,26 @@ namespace EngineViewer
                             cusGeo.DefineNormal(engpoint.EngNormal.ToVec3());
                             cusGeo.DefineTexCoord(engpoint.EngTexture.ToVec2());
                             cusGeo.DefineTangent(engpoint.EngTangent.ToVec4());
+                            vcs.Add(engpoint.EngPosition.ToVec3());
                         }
                     }
                 }
                 cusGeo.Commit();
+                var bbx = new BoundingBox(vcs.ToArray());
+                cusGeo.WorldBoundingBox.Define(bbx);
                 Logger.Log("End Geometry");
             }
         }
+
+        //todo: I couldn't use less vertices against Indices
+        //todo: looping numbers in C# leaks!!
+        //todo: light is not passing through transparent objects
+        //todo: SetunPackVertex
+        //todo: Generate Tangent i would prefer omitting position and normal, as they are must by all means. and will always equalls to 3+3
+        //todo: Saving material that is not previously saved on HDD outputs nothing. must be saved 1st then save scene.
+        //todo: how to set material Ids, meaning A window have a glass and metal frame, probably wood in your place, do I have to create separate geometries per materials, or I can combine all faces, and then define material faces.
+        //todo: Camera Range is not enlarged
+        //todo: how to Setup horizontal Clipping
 
         private Window infowindow = null;
 
@@ -385,8 +463,8 @@ namespace EngineViewer
 
             var infotext = infowindow.CreateChild(nameof(Text)) as Text;
             infotext.Name = "InfoText";
-            infotext.SetColor(Color.Red);
-            infotext.SetFont("Arial.ttf", 12);
+            infotext.SetColor(Color.Green); 
+            infotext.SetFont("ARLRDBD.TTF", 12);
         }
 
         private void DisplayInfoText(Drawable hoverselected)

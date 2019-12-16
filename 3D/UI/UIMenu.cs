@@ -154,6 +154,13 @@ namespace EngineViewer.Actions._3D.UI
                                 Selection.SelectedModel = null;
                                 ActionMenu = menuaction.none;
                             }
+                            if (ImGui.Button("Debug Renderer"))
+                            {
+                                var debugrend = Selection.SelectedModel.Scene.GetComponent<DebugRenderer>();
+                                Selection.SelectedModel.Node.Renderer.DrawDebugGeometry(true);
+                                Selection.SelectedModel = null;
+                                ActionMenu = menuaction.none;
+                            }
                             if (ImGui.Button("Cancel"))
                             {
                                 Selection.SelectedModel = null;

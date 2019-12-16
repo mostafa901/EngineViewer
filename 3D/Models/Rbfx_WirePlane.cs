@@ -1,34 +1,31 @@
-﻿
-
-using System;
+﻿using System;
 using Urho3DNet;
 using EngineViewer.Actions._3D.RbfxUtility;
 
 namespace EngineViewer.Actions._3D.Models
 {
-    class Engn_WirePlane
+    internal class Engn_WirePlan
     {
-        public WirePlane wireplan;
-        public Engn_WirePlane(Scene scene)
-        {
-            var wirenode = scene.CreateChild("WirePlane");
-            wireplan = new WirePlane(scene.Context);
-            wireplan.Color = Color.Gray;
+        public WirePlan wireplan;
 
+        public Engn_WirePlan(Scene scene)
+        {
+            wireplan = new WirePlan(scene.Context);
+            wireplan.Color = Color.Gray;
+            wireplan.SetTemporary(true);
             scene.AddComponent(wireplan, wireplan.ID, CreateMode.Local);
+
         }
     }
 
-
-
-    public class WirePlane: Component
+    public class WirePlan: Component
     {
-        CustomGeometry geom;
+        private CustomGeometry geom;
         private int size = 50;
         private float scale = 1f;
         private Color color = new Color(1f, 0.0f, 0.7f);
 
-        public WirePlane(Context context) : base(context)
+        public WirePlan(Context context) : base(context)
         {
             SetTemporary(true);
         }
@@ -69,8 +66,7 @@ namespace EngineViewer.Actions._3D.Models
             Reload();
         }
 
-
-        void Reload()
+        private void Reload()
         {
             if (geom != null && !geom.IsZoneDirty())
                 geom.Remove();
@@ -79,7 +75,7 @@ namespace EngineViewer.Actions._3D.Models
                 return;
 
             geom = Node.CreateComponent<CustomGeometry>();
-
+            geom.SetTemporary(true);
             geom.BeginGeometry(0, PrimitiveType.LineList);
 
             geom.SetMaterial(Material_Ext.noLitFromColor(color, true));
@@ -108,6 +104,8 @@ namespace EngineViewer.Actions._3D.Models
             geom.Commit();
 
             geom = Node.CreateComponent<CustomGeometry>();
+            geom.SetTemporary(true);
+
             geom.BeginGeometry(0, PrimitiveType.LineList);
 
             geom.SetMaterial(0, Material_Ext.noLitFromColor(Color.White, true));

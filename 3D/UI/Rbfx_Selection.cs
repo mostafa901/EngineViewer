@@ -22,7 +22,7 @@ namespace EngineViewer.Actions._3D.UI
                 Vector3 hitposition;
                 Drawable model;
 
-                Rbfx_Utility.Raycast(scene, cam, 10000, out hitposition, out model);
+                Rbfx_Utility.Raycast(scene, cam, float.MaxValue, out hitposition, out model);
                 if (app.Context.Input.GetMouseButtonPress(MouseButton.MousebLeft))
                 {
                     HiLightSelected(model);

@@ -17,8 +17,8 @@ namespace EngineViewer._3D.Test
             boxesNode.SetTemporary(true);
 			const int numObjects = 2000;
 			var boxModel = RootNode.Context.Cache.GetResource<Urho3DNet.Model>("Models/Box.mdl");
-			//var boxMaterial = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");
-			var boxMaterial = Material_Ext.TransParentMaterial(new Color(1,0,0,.5f));
+			var boxMaterial = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");
+			//var boxMaterial = Material_Ext.TransParentMaterial(new Color(1,0,0,.5f));
 	 
 
 			for (var i = 0; i < numObjects; ++i)

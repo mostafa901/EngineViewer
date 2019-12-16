@@ -15,14 +15,14 @@ namespace EngineViewer._3D.Test
 			//zone is a region that has enviromental effects including light, any object within this zone will get affected.
 			var zoneNode = RootNode.CreateChild("Zone");
             Rbfx_Zone = zoneNode.CreateComponent<Zone>();
+            zoneNode.SetTemporary(true);
 
             // Set same volume as the Octree, set a close bluish fog and some ambient light
-            Rbfx_Zone.SetBoundingBox(new BoundingBox(-10000.0f, 10000.0f));
+            Rbfx_Zone.SetBoundingBox(new BoundingBox(-1000f, 1000f));
             Rbfx_Zone.AmbientColor = new Color(0.05f, 0.1f, 0.15f);
             Rbfx_Zone.FogColor = new Color(0.1f, 0.2f, 0.3f);
             Rbfx_Zone.FogStart = 50;
             Rbfx_Zone.FogEnd = 100;
-            Rbfx_Zone.SetTemporary(true);
 			 
 		}
 

@@ -34,25 +34,7 @@ namespace EngineViewer.Actions._3D.RbfxUtility
 		{
 			Notes = "testing";
             SetTemporary(true);
-		}
-
-
-        protected override void OnNodeSet(Node node)
-        {
-            base.OnNodeSet(node);
-            Reload();
-        }
-       public CustomGeometry geom;
-        public Action ReloadAction = ()=> { };
-        public virtual void Reload()
-        {
-            if (geom != null && !geom.IsZoneDirty())
-                geom.Remove();
-
-            geom = Node.CreateComponent<CustomGeometry>();
-            ReloadAction();
-            Debug.WriteLine("Reloaded");
-        }
+		} 
 
         [SerializeField]
 		public Vector3 OriginalPosition { get; set; } = new Vector3();

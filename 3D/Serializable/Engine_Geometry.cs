@@ -27,7 +27,9 @@ namespace EngineViewer.Serializable
             Engine_Faces = new List<Engine_Face>();
             Position = new Engine_Point() { EngPointType = PointType.Position };
             Rotation = new Engine_Point() { EngPointType = PointType.Rotation };
+            Flip = new Engine_Point(1, 1, 1, 1, PointType.Normal);
             GeoCullModel = CullMode.CullCcw;
+            FileName = System.IO.Path.GetTempPath();
         }
 
         public enum PointType

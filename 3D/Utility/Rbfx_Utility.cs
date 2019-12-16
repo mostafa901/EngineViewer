@@ -27,7 +27,7 @@ namespace EngineViewer.Actions._3D.RbfxUtility
                 hitDrawable = result.Drawable;
                 if (hitDrawable != null)
                 {
-                    if (hitDrawable.Node.GetComponent<WirePlane>() != null)
+                    if (hitDrawable.Node.GetComponent<WirePlan>() != null)
                     {
                         hitDrawable = null;
                         continue;

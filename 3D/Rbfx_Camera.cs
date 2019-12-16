@@ -19,8 +19,10 @@ namespace EngineViewer.Actions._3D.RbfxUtility
 
             camera = CameraNode.CreateComponent<Camera>();
             camera.UseClipping = false;
+             camera.FarClip = float.MaxValue;
+             
             CameraNode.Position = new Vector3(0, 5, 0);
-
+           
         }
 
 

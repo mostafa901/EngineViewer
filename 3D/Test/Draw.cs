@@ -26,7 +26,7 @@ namespace EngineViewer._3D.Test
             linechild.Position = position.ToVec3();
         }
 
-        public void DrawRectangle()
+        public Node DrawRectangle()
         {
             var face01 = new Engine_Face();
 
@@ -66,10 +66,12 @@ namespace EngineViewer._3D.Test
             Engine_Triangle tri02 = new Engine_Triangle() { V1 = p03.Clone(), V2 = p04, V3 = p01.Clone() };
             face01.EngTriangles = new List<Engine_Triangle>() { tri01, tri02 };
 
-            var geo = new EngineViewer.Serializable.Engine_Geometry();            
+            var geo = new EngineViewer.Serializable.Engine_Geometry();
+            geo.Rotation = new Engine_Point(-90, 0, 0, 0, PointType.Rotation);          
             geo.Engine_Faces.Add(face01);
 
-            DefaultScene.Instance.CreateCustomShape2(geo);
+           return DefaultScene.Instance.CreateCustomShape2(geo);
+            
         }
     }
 }

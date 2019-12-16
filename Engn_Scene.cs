@@ -138,7 +138,7 @@ namespace EngineViewer
             var eng_Zone = new Engn_Zone_Test(scene);
             eng_Zone.Rbfx_Zone.FogStart = 100f;
 
-            new Engn_WirePlane(scene);
+            new Engn_WirePlan(scene);
             SetupLight();
 
             RootNode = scene.CreateChild("root");
@@ -146,6 +146,9 @@ namespace EngineViewer
             uiMenu = new UIMenu(RootNode, Selection);
 
             SetupInfoWindow();
+            var plan = new Engn_Plan(scene);
+
+            plan.planeNode.Position = new Vector3(0, 0, 5);
         }
 
         private void SetupLight()
@@ -157,7 +160,7 @@ namespace EngineViewer
             l.Range = 200f;
             lightNode.LookAt(Vector3.Zero);
             l.LightType = LightType.LightPoint;
-            l.CastShadows = true;            
+            l.CastShadows = true;
             l.ShadowBias = new BiasParameters(0.00025f, 0.5f);
             // Set cascade splits at 10, 50 and 200 world units, fade shadows out at 80% of maximum shadow distance
             l.ShadowCascade = new CascadeParameters(10.0f, 50.0f, 200.0f, 0.0f, 0.8f);
@@ -173,33 +176,13 @@ namespace EngineViewer
             viewport.Scene = scene;
             viewport.Camera = cam.camera;
             Context.Renderer.SetViewport(0, viewport);
-
-            //todo: not sure how setclipplane works
-            // cam.camera.ClipPlane = new Plane(new Vector3(),new Vector3(5,0,5),new Vector3(5,5,5));
-            cam.camera.UseClipping = true;
         }
 
-       
-       private void SubscribeEvents()
+        private void SubscribeEvents()
         {
-            float[] sliderV1X = new float[1];
-            float[] sliderV1Y = new float[1];
-            float[] sliderV1Z = new float[1];
-            Vector3 vector01 = new Vector3();
-            float[] sliderV2X = new float[1];
-            float[] sliderV2Y = new float[1];
-            float[] sliderV2Z = new float[1];
-            Vector3 vector02 = new Vector3();
-            float[] sliderV3X = new float[1];
-            float[] sliderV3Y = new float[1];
-            float[] sliderV3Z = new float[1];
-            Vector3 vector03 = new Vector3();
-            var plan = new Engn_Plan(scene);
-            plan.planeNode.Rotate(new Quaternion( new Vector3(90, 0, 0)));
-              plan = new Engn_Plan(scene);
-            plan.planeNode.Rotate(new Quaternion(    new Vector3(0, 90, 0)));
-            plan = new Engn_Plan(scene);
-            plan.planeNode.Rotate(new Quaternion(new Vector3(0, 0, 90)));
+            float[] depth = new float[1];
+            float[] camdepth = new float[1] { cam.camera.FarClip };
+
             SubscribeToEvent(E.Update, args =>
             {
                 float moveSpeed = 5;
@@ -259,6 +242,7 @@ namespace EngineViewer
                 {
                     new Rbfx_RandomBoxes(RootNode);
                 }
+
                 if (ImGuiNet.ImGui.Button("Remove All Boxes"))
                 {
                     while (true)
@@ -268,59 +252,28 @@ namespace EngineViewer
                         nodes.Remove();
                     }
                 }
-                
-                if (ImGuiNet.ImGui.SliderFloat("v1.X",sliderV1X, -100,100))
+                if (ImGuiNet.ImGui.SliderFloat("Depth", depth, 0, 1000))
                 {
-                    vector01.X = sliderV1X[0];
-                  //  vector01 = new Vector3(sliderV1X[0], sliderV1X[0], sliderV1X[0]);
-
+                    if (testnode != null)
+                    {
+                        testnode.Position = new Vector3(0, 0, depth[0]);
+                    }
                 }
-                if (ImGuiNet.ImGui.SliderFloat("v1.Y", sliderV1Y, -100, 100))
+                if (ImGuiNet.ImGui.SliderFloat("CameraFarclip", camdepth, 0, 2000))
                 {
-                    vector01.Y = sliderV1Y[0];
-                }
-                if (ImGuiNet.ImGui.SliderFloat("v1.Z", sliderV1Z, -100, 100))
-                {
-                    vector01.Z = sliderV1Z[0];
-                }
-               
-                if (ImGuiNet.ImGui.SliderFloat("v2.X", sliderV2X, -100, 100))
-                {
-                    vector02.X = sliderV2X[0];
-                  //  vector02 = new Vector3(sliderV2X[0], sliderV2X[0], sliderV2X[0]);
-
-                }
-                if (ImGuiNet.ImGui.SliderFloat("v2.Y", sliderV2Y, -100, 100))
-                {
-                    vector02.Y = sliderV2Y[0];
-                }
-                if (ImGuiNet.ImGui.SliderFloat("v2.Z", sliderV2Z, -100, 100))
-                {
-                    vector02.Z = sliderV2Z[0];
-                }
-               
-                if (ImGuiNet.ImGui.SliderFloat("v3.X", sliderV3X, -100, 100))
-                {
-                    vector03.X = sliderV3X[0];
-                  //  vector03 = new Vector3(sliderV3X[0], sliderV3X[0], sliderV3X[0]);
-                }
-                if (ImGuiNet.ImGui.SliderFloat("v3.Y", sliderV3Y, -100, 100))
-                {
-                    vector03.Y = sliderV3Y[0];
-                }
-                if (ImGuiNet.ImGui.SliderFloat("v3.Z", sliderV3Z, -100, 100))
-                {
-                    vector03.Z = sliderV3Z[0];
+                     
+                        cam.camera.FarClip = camdepth[0];
+                     
                 }
 
-                cam.camera.ClipPlane = new Plane(new Vector3(0,1,0), vector02);
                 if (ImGuiNet.ImGui.Button("Draw"))
                 {
-                    new Draw().DrawRectangle();
+                    testnode = new Draw().DrawRectangle();
                 }
                 DisplayInfoText(hoverselected);
             });
         }
+        Node testnode = null;
         public void DrawGeometryFromRevit(List<string> jsonFiles)
         {
             foreach (var jsonFilePath in jsonFiles)
@@ -331,17 +284,18 @@ namespace EngineViewer
             }
         }
 
-        public void CreateCustomShape2(Serializable.Engine_Geometry geom)
+        public Node CreateCustomShape2(Serializable.Engine_Geometry geom)
         {
             Logger.Log($"Generating Geometry [{geom.Name}]");
 
             if (geom.Engine_Faces.Count == 0)
             {
                 Logger.Log($"Geometry: [{geom.Name}] has no faces", "", Logger.ErrorType.Warrning);
-                return;
+                return null;
             }
 
             var geonode = RootNode.CreateChild(geom.Name);
+            
             geonode.Scale(geom.Flip.ToVec3());
             if (geom.Rotation != null)
                 geonode.Rotate(new Quaternion(geom.Rotation.ToVec3()));
@@ -356,16 +310,19 @@ namespace EngineViewer
                 var model = Cache.GetResource<Model>("Models/Box.mdl");
                 var stcomp = failChild.CreateComponent<StaticModel>();
                 stcomp.SetModel(model);
-                return;
+                return null;
             }
 
             var faceColorGroups = geom.Engine_Faces.GroupBy(o => o.FaceColor.ToString());
             string dir = System.IO.Path.GetDirectoryName(geom.FileName);
+
             var files = System.IO.Directory.GetFiles(dir).ToList();
+            int index = 0;
             foreach (var faceColorGroup in faceColorGroups)
             {
+                var facechild = geonode.CreateChild($"{geom.Name}: {index}");
+                index++;
 
-                var facechild = geonode.CreateChild("Face_Color");
                 Material mat = null;
 
                 var faceColor = faceColorGroup.ElementAt(0).FaceColor;
@@ -398,18 +355,18 @@ namespace EngineViewer
                     var isSaved = mat.SaveFile(dir + "\\" + mat.Name);
                 }
 
-                mat = Cache.GetResource<Material>(dir + "\\" + faceColor.ToString() + ".xml"); 
+                mat = Cache.GetResource<Material>(dir + "\\" + faceColor.ToString() + ".xml");
 #endif
 
                 var cus = facechild.CreateComponent<CustomNodeComponent>();
                 cus.OriginalMaterial = mat;
 
                 var cusGeo = facechild.CreateComponent<CustomGeometry>();
-                cusGeo.CastShadows = true;
-                
-                cusGeo.BeginGeometry(0, PrimitiveType.TriangleList);
                 cusGeo.SetMaterial(mat);
-                
+                cusGeo.CastShadows = true;
+
+                cusGeo.BeginGeometry(0, PrimitiveType.TriangleList);
+
                 Logger.Log("Begin Geometry");
                 List<Vector3> vcs = new List<Vector3>();
                 foreach (var face in faceColorGroup)
@@ -435,6 +392,7 @@ namespace EngineViewer
                 cusGeo.WorldBoundingBox.Define(bbx);
                 Logger.Log("End Geometry");
             }
+            return geonode;
         }
 
         //todo: I couldn't use less vertices against Indices
@@ -443,9 +401,13 @@ namespace EngineViewer
         //todo: SetunPackVertex
         //todo: Generate Tangent i would prefer omitting position and normal, as they are must by all means. and will always equalls to 3+3
         //todo: Saving material that is not previously saved on HDD outputs nothing. must be saved 1st then save scene.
+
         //todo: how to set material Ids, meaning A window have a glass and metal frame, probably wood in your place, do I have to create separate geometries per materials, or I can combine all faces, and then define material faces.
         //todo: Camera Range is not enlarged
-        //todo: how to Setup horizontal Clipping
+        //todo: how to close a poppedup imgui when clicking outside
+
+        //issue:
+        //todo: Saving Material must be mat.SetShaderParameter("MatDiffColor", color.ToVector4())
 
         private Window infowindow = null;
 
@@ -463,8 +425,9 @@ namespace EngineViewer
 
             var infotext = infowindow.CreateChild(nameof(Text)) as Text;
             infotext.Name = "InfoText";
-            infotext.SetColor(Color.Green); 
+            infotext.SetColor(Color.Green);
             infotext.SetFont("ARLRDBD.TTF", 12);
+            
         }
 
         private void DisplayInfoText(Drawable hoverselected)

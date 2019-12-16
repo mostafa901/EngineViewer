@@ -19,7 +19,8 @@ namespace EngineViewer.Actions._3D
 			Dispatcher.CurrentDispatcher.Invoke(() =>
 			{
 				path = Utility.IO.system.LoadFiles("bin|*.bin|xml|*.xml|ifc|*.ifc|Collada DAE|*.dae|mdl|*.mdl|FBX|*.fbx|DXF|*.dxf|3DS|*.3ds").FirstOrDefault();
-				
+                if (path == null) return;
+
 				if (path.Contains("}") || path.Contains("{"))
 				{
 					DefaultScene.Actions.Add(() =>
@@ -100,13 +101,15 @@ namespace EngineViewer.Actions._3D
 			if (string.IsNullOrEmpty(path)) return;
 
 
-           
-            if (!scene.SaveFile(path))
+#if false
+            Urho3DNet.File file = new Urho3DNet.File(scene.Context, path, Urho3DNet.FileMode.FileWrite);
+            file.sa
+            if (!scene.Save(file))
             {
                 new MessageBox(scene.Context, "Couldn't Save File", "Save Error");
                 return;
-            }
-
+            } 
+#endif
 #if false
             var jsonFile = new JSONFile(scene.Context);
             var rootElem = jsonFile.GetRoot();
@@ -118,7 +121,7 @@ namespace EngineViewer.Actions._3D
 
             jsonFile.SaveFile(path); 
 #endif
-#if false
+#if true
             var xmlFile = new XMLFile(scene.Context);
             XMLElement rootElem = xmlFile.CreateRoot("Root");
             if (!scene.SaveXML(rootElem))

@@ -147,6 +147,19 @@ namespace EngineViewer.Actions._3D.UI
                                 }
                                 ImGui.EndMenu();
                             }
+
+                            if (ImGui.Button("Delete"))
+                            {
+                                Selection.SelectedModel.Remove();
+                                Selection.SelectedModel = null;
+                                ActionMenu = menuaction.none;
+                            }
+                            if (ImGui.Button("Cancel"))
+                            {
+                                Selection.SelectedModel = null;
+                                ActionMenu = menuaction.none;
+                            }
+
                             ImGui.EndPopup();
                         }
                         break;

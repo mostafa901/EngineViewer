@@ -32,7 +32,8 @@ namespace EngineViewer.Actions._3D.RbfxUtility
 	{
 		public CustomNodeComponent(Context context) : base(context)
 		{
-			Notes = "testing";  
+			Notes = "testing";
+            SetTemporary(true);
 		}
 
 

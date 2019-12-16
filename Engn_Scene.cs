@@ -71,7 +71,7 @@ namespace EngineViewer
             engineParameters_[Urho3D.EpFullScreen] = false;
             engineParameters_[Urho3D.EpExternalWindow] = Parent;
             engineParameters_[Urho3D.EpWindowResizable] = true;
-            engineParameters_[Urho3D.EpWindowWidth] = 1200;
+            engineParameters_[Urho3D.EpWindowWidth] = 1800;
             engineParameters_[Urho3D.EpWindowHeight] = 800;
             engineParameters_[Urho3D.EpWindowTitle] = "Hello C#";
             engineParameters_[Urho3D.EpResourcePrefixPaths] = $"{currentDir};{currentDir}/..";
@@ -222,11 +222,11 @@ namespace EngineViewer
             lightNode = cam.CameraNode.CreateChild("Light");
             lightNode.SetTemporary(true);
             var l = lightNode.CreateComponent<Light>();
-            lightNode.Position = (new Vector3(0, 1, 0));
+            lightNode.Position = (new Vector3(2, 1, 0));
             l.Range = 200f;
             lightNode.LookAt(Vector3.Zero);
             l.LightType = LightType.LightPoint;
-            l.CastShadows = true;
+            l.CastShadows = true;            
             l.ShadowBias = new BiasParameters(0.00025f, 0.5f);
             // Set cascade splits at 10, 50 and 200 world units, fade shadows out at 80% of maximum shadow distance
             l.ShadowCascade = new CascadeParameters(10.0f, 50.0f, 200.0f, 0.0f, 0.8f);
@@ -262,6 +262,7 @@ namespace EngineViewer
             foreach (var jsonFilePath in jsonFiles)
             {
                 var geo = new Serializable.Engine_Geometry().JDeserializemyData(System.IO.File.ReadAllText(jsonFilePath));
+                geo.FileName = jsonFilePath;
                 CreateCustomShape2(geo);
             }
         }
@@ -295,14 +296,16 @@ namespace EngineViewer
             }
 
             var faceColorGroups = geom.Engine_Faces.GroupBy(o => o.FaceColor.ToString());
-
+            string dir = System.IO.Path.GetDirectoryName(geom.FileName);
+            var files = System.IO.Directory.GetFiles(dir).ToList();
             foreach (var faceColorGroup in faceColorGroups)
             {
 
                 var facechild = geonode.CreateChild("Face_Color");
-                //Material mat = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");
                 Material mat = null;
+
                 var faceColor = faceColorGroup.ElementAt(0).FaceColor;
+
                 if (faceColor.L != 1)
                 {
                     mat = Material_Ext.TransParentMaterial(faceColor.ToColor());
@@ -312,16 +315,37 @@ namespace EngineViewer
                     mat = Material_Ext.ColoredMaterial(faceColor.ToColor());
                 }
                 mat.CullMode = geom.GeoCullModel;
+#if false
+                var faceColor = faceColorGroup.ElementAt(0).FaceColor.ToColor();
+
+                // mat = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");
+                if (!files.Any(o => o.Contains(faceColor.ToString())))
+                {
+                    if (faceColor.ToVector4().W != 1)
+                    {
+                        mat = Material_Ext.TransParentMaterial(faceColor);
+                    }
+                    else
+                    {
+                        mat = Material_Ext.ColoredMaterial(faceColor);
+                    }
+                    mat.CullMode = geom.GeoCullModel;
+
+                    var isSaved = mat.SaveFile(dir + "\\" + mat.Name);
+                }
+
+                mat = Cache.GetResource<Material>(dir + "\\" + faceColor.ToString() + ".xml"); 
+#endif
 
                 var cus = facechild.CreateComponent<CustomNodeComponent>();
                 cus.OriginalMaterial = mat;
 
                 var cusGeo = facechild.CreateComponent<CustomGeometry>();
-                // cusGeo.CastShadows = true;
-
+                cusGeo.CastShadows = true;
+                
                 cusGeo.BeginGeometry(0, PrimitiveType.TriangleList);
                 cusGeo.SetMaterial(mat);
-
+                
                 Logger.Log("Begin Geometry");
                 foreach (var face in faceColorGroup)
                 {

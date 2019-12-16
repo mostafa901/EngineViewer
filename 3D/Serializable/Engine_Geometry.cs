@@ -20,7 +20,7 @@ namespace EngineViewer.Serializable
         public bool UseLargeIndex = false;
         public CullMode GeoCullModel { get; set; }
         public Engine_Point Flip { get; set; }
-
+        public string FileName { get; set; }
 
         public Engine_Geometry()
         {
@@ -510,7 +510,7 @@ namespace EngineViewer.Serializable
 
             public override string ToString()
             {
-                return $"{X}, {Y}, {Z}";
+                return $"{X}, {Y}, {Z}, {L}";
             }
 
             public Color ToColor()

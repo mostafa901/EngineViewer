@@ -30,14 +30,17 @@ namespace EngineViewer.Actions._3D.RbfxUtility
             mat.SetTechnique(0, mat.Cache.GetResource<Technique>("Techniques/NoTextureAlpha.xml"));
             mat.SetShaderParameter("MatDiffColor", color);
             mat.SetShaderParameter("MatSpecColor", new Vector4(1, 1, 1, 32));
+            mat.Name = color.ToString() + ".xml";
+
             return mat;
         }
 
         public static Material ColoredMaterial(Color color)
         {
-            var material = DefaultScene.scene.Context.Cache.GetResource<Material>("Materials/Colored.xml").Clone();
-            material.SetShaderParameter("MatDiffColor", color);
-            return material;
+            var mat = DefaultScene.scene.Context.Cache.GetResource<Material>("Materials/Colored.xml").Clone();
+            mat.SetShaderParameter("MatDiffColor", color);
+            mat.Name = color.ToString() + ".xml";
+            return mat;
         }
 
         #region SelectedMaterial

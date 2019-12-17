@@ -74,5 +74,14 @@ namespace EngineViewer._3D.Test
            return geo;
             
         }
+
+        public Node DrawCube(Node root){
+
+            var cube = new Node(root.Context);
+            var cubeStatic = cube.CreateComponent<StaticModel>();
+            cubeStatic.SetModel(root.Context.Cache.GetResource<Model>("Models/Box.mdl"));
+            cubeStatic.SetMaterial(root.Context.Cache.GetResource<Material>("Materials/Stone.xml"));
+            return cube;
+        }
     }
 }

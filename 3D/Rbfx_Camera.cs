@@ -19,7 +19,7 @@ namespace EngineViewer.Actions._3D.RbfxUtility
 
             camera = CameraNode.CreateComponent<Camera>();
             camera.UseClipping = false;
-             camera.FarClip = 1000; 
+             camera.FarClip = 100; 
         }
 
 

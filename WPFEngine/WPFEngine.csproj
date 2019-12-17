@@ -53,9 +53,9 @@
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
     <Reference Include="UIAutomationProvider" />
-    <Reference Include="Urho3DNet, Version=0.0.3.0, Culture=neutral, PublicKeyToken=a2a227328ed26d09, processorArchitecture=x86">
+    <Reference Include="Urho3DNet, Version=0.0.3.0, Culture=neutral, PublicKeyToken=0fe1d37adde1a47d, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Downloaded_Library\Source\rbfx\cmake-build\bin\Debug\Urho3DNet.dll</HintPath>
+      <HintPath>..\..\..\Downloaded_Library\Source\rbfxx\cmake-build\bin\Debug\Urho3DNet.dll</HintPath>
     </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
@@ -113,22 +113,22 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\Downloaded_Library\Source\rbfx\cmake-build\bin\Debug\Urho3D.dll">
-      <Link>Urho3D.dll</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="..\..\..\Downloaded_Library\Source\rbfx\cmake-build\bin\Debug\Urho3D.pdb">
-      <Link>Urho3D.pdb</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="..\..\Shared_Utility\sqlite3.def">
       <Link>sqlite3.def</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="..\..\Shared_Utility\sqlite3.dll">
       <Link>sqlite3.dll</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\Downloaded_Library\Source\rbfxx\cmake-build\bin\Debug\Urho3D.dll">
+      <Link>Urho3D.dll</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\..\Downloaded_Library\Source\rbfxx\cmake-build\bin\Debug\Urho3D.pdb">
+      <Link>Urho3D.pdb</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

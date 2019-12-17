@@ -67,7 +67,7 @@ namespace EngineViewer
         {
             var currentDir = @"D:\Revit_API\Downloaded_Library\Source\rbfx\cmake-build\bin\Data";
             engineParameters_[Urho3D.EpFullScreen] = false;
-            engineParameters_[Urho3D.EpExternalWindow] = Parent;
+             engineParameters_[Urho3D.EpExternalWindow] = Parent;
             engineParameters_[Urho3D.EpWindowResizable] = true;
             engineParameters_[Urho3D.EpWindowWidth] = 1800;
             engineParameters_[Urho3D.EpWindowHeight] = 800;
@@ -171,86 +171,101 @@ namespace EngineViewer
             viewport.Scene = scene;
             viewport.Camera = cam.camera;
             Context.Renderer.SetViewport(0, viewport);
+
         }
 
+        Node cube;
         private void SubscribeEvents()
         {
-            float SectionPlan = 0;
-            var plan = new Engn_Plan(scene);
+            cube = new Draw().DrawCube(RootNode);
+            scene.AddChild(cube);
+            var zone = scene.GetComponent<Zone>(true);
 
+           // var plan = new Engn_Plan(scene);
+            float[] cubeZ = new float[1] { 0 };
+            float[] zoneFogEnd = new float[1] { zone.FogEnd };
+            float[] cameraFarClip =new float[1] { cam.camera.FarClip };
             SubscribeToEvent(E.Update, args =>
             {
-            float moveSpeed = 5;
-            uiMenu.RenderMenu();
+                float moveSpeed = 5;
+                uiMenu.RenderMenu();
 
-            //what to do if selection is nothing
-            onUnSelect();
+                //what to do if selection is nothing
+                onUnSelect();
 
-            //camera movement
-            if (Context.Input.GetKeyPress(Key.KeyShift)) moveSpeed *= .5f;
-            cam.FirstPersonCamera(this, Context.Time.TimeStep, moveSpeed, Selection?.SelectedModel);
+                //camera movement
+                if (Context.Input.GetKeyPress(Key.KeyShift)) moveSpeed *= .5f;
+                cam.FirstPersonCamera(this, Context.Time.TimeStep, moveSpeed, Selection?.SelectedModel);
 
-            //CheckSelection
-            Drawable hoverselected = null;
-            if (uiMenu.ActionMenu == menuaction.none)
-            {
-                hoverselected = Selection.SelectGeometry(this, scene, cam);
-                uiMenu.Selection = Selection;
-                uiMenu.RootNode = RootNode;
-            }
-
-            if (Context.Input.GetMouseButtonPress(Urho3DNet.MouseButton.MousebLeft))
-            {
-                touraroundboxes(Selection.SelectedModel);
-            }
-
-            //invoke any actions in the list
-            if (Actions.Count > 0)
-            {
-                var runningActions = Actions.ToList();
-                Actions.Clear();
-                for (int i = 0; i < runningActions.Count; i++)
+                //CheckSelection
+                Drawable hoverselected = null;
+                if (uiMenu.ActionMenu == menuaction.none)
                 {
-                    runningActions[i].Invoke();
+                    hoverselected = Selection.SelectGeometry(this, scene, cam);
+                    uiMenu.Selection = Selection;
+                    uiMenu.RootNode = RootNode;
                 }
-            }
 
-            if (Context.Input.GetMouseButtonClick(Urho3DNet.MouseButton.MousebRight))
-            {
-                if (Selection.SelectedModel != null)
+                if (Context.Input.GetMouseButtonPress(Urho3DNet.MouseButton.MousebLeft))
                 {
-                    uiMenu.ActionMenu = menuaction.ObjectContext;
+                    touraroundboxes(Selection.SelectedModel);
                 }
-            }
 
-            if (ImGuiNet.ImGui.Button("Message"))
-            {
-                //  string imp = system.LoadFile("Json|*.json");
-                var imp = system.LoadFiles("Json|*.json");
-                //if (string.IsNullOrEmpty(imp)) return;
-
-                if (imp == null) return;
-                var jsonFiles = imp.ToList();
-                DrawGeometryFromRevit(jsonFiles);
-            }
-            if (ImGuiNet.ImGui.Button("Generate Boxes"))
-            {
-                new Rbfx_RandomBoxes(RootNode);
-            }
-
-                if (ImGuiNet.ImGui.SliderFloat("SectionPlan depth", ref SectionPlan, 0, 5))
+                //invoke any actions in the list
+                if (Actions.Count > 0)
                 {
-                    var depth = SectionPlan;
-                    if (depth == 0)
+                    var runningActions = Actions.ToList();
+                    Actions.Clear();
+                    for (int i = 0; i < runningActions.Count; i++)
                     {
-                        cam.camera.UseClipping = false;
+                        runningActions[i].Invoke();
                     }
-                    else
+                }
+
+                if (Context.Input.GetMouseButtonClick(Urho3DNet.MouseButton.MousebRight))
+                {
+                    if (Selection.SelectedModel != null)
                     {
-                        cam.camera.UseClipping = true;
-                        cam.camera.ClipPlane = new Plane(Vector3.Up, new Vector3(10,SectionPlan,10));
-                        plan.planeNode.Position = new Vector3(plan.planeNode.Position.X, SectionPlan, plan.planeNode.Position.Z) ;
+                        uiMenu.ActionMenu = menuaction.ObjectContext;
                     }
+                }
+
+                if (ImGuiNet.ImGui.Button("Message"))
+                {
+                    //  string imp = system.LoadFile("Json|*.json");
+                    var imp = system.LoadFiles("Json|*.json");
+                    //if (string.IsNullOrEmpty(imp)) return;
+
+                    if (imp == null) return;
+                    var jsonFiles = imp.ToList();
+                    DrawGeometryFromRevit(jsonFiles);
+                }
+                if (ImGuiNet.ImGui.Button("Generate Boxes"))
+                {
+                    new Rbfx_RandomBoxes(RootNode);
+                }
+
+                if (ImGuiNet.ImGui.SliderFloat("Cube ZPos",   cubeZ, 0, 100))
+                {
+                    var pos = cube.Position;
+                    cube.Position = new Vector3(pos.X, pos.Y, cubeZ[0]);
+                }
+
+                if (ImGuiNet.ImGui.SliderFloat("Camera FarClip",   cameraFarClip, 0, 100))
+                {
+                    cam.camera.FarClip = cameraFarClip[0];
+                }
+
+                if (ImGuiNet.ImGui.SliderFloat("Zone FogEnd",   zoneFogEnd, 0, 100))
+                {
+                    zone.FogEnd = zoneFogEnd[0];
+
+                }
+
+                if(ImGuiNet.ImGui.Begin("Camera Position"))
+                {
+                    ImGuiNet.ImGui.Text(cam.CameraNode.Position.ToString());
+                    ImGuiNet.ImGui.End();
                 }
                 if (ImGuiNet.ImGui.Button("Remove All Boxes"))
                 {
@@ -272,7 +287,7 @@ namespace EngineViewer
             });
         }
 
-       
+
 
         public void DrawGeometryFromRevit(List<string> jsonFiles)
         {

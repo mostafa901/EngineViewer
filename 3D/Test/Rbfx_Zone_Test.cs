@@ -6,14 +6,14 @@ using Urho3DNet;
 
 namespace EngineViewer._3D.Test
 {
-	class Engn_Zone_Test
-	{
+    class Engn_Zone_Test
+    {
         public Zone Rbfx_Zone;
-		public Engn_Zone_Test(Node RootNode)
-		{
+        public Engn_Zone_Test(Node RootNode)
+        {
 
-			//zone is a region that has enviromental effects including light, any object within this zone will get affected.
-			var zoneNode = RootNode.CreateChild("Zone");
+            //zone is a region that has enviromental effects including light, any object within this zone will get affected.
+            var zoneNode = RootNode.CreateChild("Zone");
             Rbfx_Zone = zoneNode.CreateComponent<Zone>();
             zoneNode.SetTemporary(true);
 
@@ -22,10 +22,11 @@ namespace EngineViewer._3D.Test
             Rbfx_Zone.AmbientColor = new Color(0.05f, 0.1f, 0.15f);
             Rbfx_Zone.FogColor = new Color(0.1f, 0.2f, 0.3f);
             Rbfx_Zone.FogStart = 50;
-            Rbfx_Zone.FogEnd = 100;
-			 
-		}
+            Rbfx_Zone.FogEnd = 1000;
 
 
-	}
+        }
+
+
+    }
 }

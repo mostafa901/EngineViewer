@@ -1,4 +1,5 @@
 ﻿using EngineViewer.Actions._3D.RbfxUtility;
+using EngineViewer.Serializable;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,7 +27,7 @@ namespace EngineViewer._3D.Test
             linechild.Position = position.ToVec3();
         }
 
-        public Node DrawRectangle()
+        public Engine_Geometry DrawRectangle()
         {
             var face01 = new Engine_Face();
 
@@ -70,7 +71,7 @@ namespace EngineViewer._3D.Test
             geo.Rotation = new Engine_Point(-90, 0, 0, 0, PointType.Rotation);          
             geo.Engine_Faces.Add(face01);
 
-           return DefaultScene.Instance.CreateCustomShape2(geo);
+           return geo;
             
         }
     }

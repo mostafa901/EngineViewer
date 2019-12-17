@@ -19,10 +19,7 @@ namespace EngineViewer.Actions._3D.RbfxUtility
 
             camera = CameraNode.CreateComponent<Camera>();
             camera.UseClipping = false;
-             camera.FarClip = float.MaxValue;
-             
-            CameraNode.Position = new Vector3(0, 5, 0);
-           
+             camera.FarClip = 1000; 
         }
 
 
@@ -69,7 +66,7 @@ namespace EngineViewer.Actions._3D.RbfxUtility
                 if (camera.Context.Input.GetKeyDown(Key.KeyShift))
                 {
                     //todo: not working correctly
-                    var ray = camera.GetScreenRay((float)camera.Graphics.Width / 2, (float)camera.Graphics.Height / 2);
+                    var ray = camera.GetScreenRay((float)camera.Context.Graphics.Width / 2, (float)camera.Context .Graphics.Height / 2);
 
                     CameraNode.RotateAround(ray.Origin, new Quaternion(0, mouseMove.X, 0), TransformSpace.TsWorld);
                     Pitch = Urho3DNet.MathDefs.Clamp(CameraNode.Rotation.PitchAngle, -90, 90);

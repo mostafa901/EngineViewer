@@ -5,14 +5,12 @@ using EngineViewer.Actions._3D.RbfxUtility;
 using EngineViewer.Actions._3D.UI;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Urho3DNet;
 using Utility.Constant;
 using Utility.IO;
 using static EngineViewer.Actions._3D.UI.UIMenu;
-using static EngineViewer.Serializable.Engine_Geometry;
 using Logger = Shared_Utility.Logger.Logger;
 
 namespace EngineViewer
@@ -91,7 +89,7 @@ namespace EngineViewer
 
             InitializeTcpConnection();
 
-            DebugHud debugHud = Engine.CreateDebugHud();
+            DebugHud debugHud = Context.Engine.CreateDebugHud();
             debugHud.Mode = DebugHudMode.DebughudShowAll;
             RunOnce();
         }
@@ -146,9 +144,6 @@ namespace EngineViewer
             uiMenu = new UIMenu(RootNode, Selection);
 
             SetupInfoWindow();
-            var plan = new Engn_Plan(scene);
-
-            plan.planeNode.Position = new Vector3(0, 0, 5);
         }
 
         private void SetupLight()
@@ -180,69 +175,83 @@ namespace EngineViewer
 
         private void SubscribeEvents()
         {
-            float[] depth = new float[1];
-            float[] camdepth = new float[1] { cam.camera.FarClip };
+            float SectionPlan = 0;
+            var plan = new Engn_Plan(scene);
 
             SubscribeToEvent(E.Update, args =>
             {
-                float moveSpeed = 5;
-                uiMenu.RenderMenu();
+            float moveSpeed = 5;
+            uiMenu.RenderMenu();
 
-                //what to do if selection is nothing
-                onUnSelect();
+            //what to do if selection is nothing
+            onUnSelect();
 
-                //camera movement
-                if (Input.GetKeyPress(Key.KeyShift)) moveSpeed *= .5f;
-                cam.FirstPersonCamera(this, Context.Time.TimeStep, moveSpeed, Selection?.SelectedModel);
+            //camera movement
+            if (Context.Input.GetKeyPress(Key.KeyShift)) moveSpeed *= .5f;
+            cam.FirstPersonCamera(this, Context.Time.TimeStep, moveSpeed, Selection?.SelectedModel);
 
-                //CheckSelection
-                Drawable hoverselected = null;
-                if (uiMenu.ActionMenu == menuaction.none)
+            //CheckSelection
+            Drawable hoverselected = null;
+            if (uiMenu.ActionMenu == menuaction.none)
+            {
+                hoverselected = Selection.SelectGeometry(this, scene, cam);
+                uiMenu.Selection = Selection;
+                uiMenu.RootNode = RootNode;
+            }
+
+            if (Context.Input.GetMouseButtonPress(Urho3DNet.MouseButton.MousebLeft))
+            {
+                touraroundboxes(Selection.SelectedModel);
+            }
+
+            //invoke any actions in the list
+            if (Actions.Count > 0)
+            {
+                var runningActions = Actions.ToList();
+                Actions.Clear();
+                for (int i = 0; i < runningActions.Count; i++)
                 {
-                    hoverselected = Selection.SelectGeometry(this, scene, cam);
-                    uiMenu.Selection = Selection;
-                    uiMenu.RootNode = RootNode;
+                    runningActions[i].Invoke();
                 }
+            }
 
-                if (Context.Input.GetMouseButtonPress(Urho3DNet.MouseButton.MousebLeft))
+            if (Context.Input.GetMouseButtonClick(Urho3DNet.MouseButton.MousebRight))
+            {
+                if (Selection.SelectedModel != null)
                 {
-                    touraroundboxes(Selection.SelectedModel);
+                    uiMenu.ActionMenu = menuaction.ObjectContext;
                 }
+            }
 
-                //invoke any actions in the list
-                if (Actions.Count > 0)
+            if (ImGuiNet.ImGui.Button("Message"))
+            {
+                //  string imp = system.LoadFile("Json|*.json");
+                var imp = system.LoadFiles("Json|*.json");
+                //if (string.IsNullOrEmpty(imp)) return;
+
+                if (imp == null) return;
+                var jsonFiles = imp.ToList();
+                DrawGeometryFromRevit(jsonFiles);
+            }
+            if (ImGuiNet.ImGui.Button("Generate Boxes"))
+            {
+                new Rbfx_RandomBoxes(RootNode);
+            }
+
+                if (ImGuiNet.ImGui.SliderFloat("SectionPlan depth", ref SectionPlan, 0, 5))
                 {
-                    var runningActions = Actions.ToList();
-                    Actions.Clear();
-                    for (int i = 0; i < runningActions.Count; i++)
+                    var depth = SectionPlan;
+                    if (depth == 0)
                     {
-                        runningActions[i].Invoke();
+                        cam.camera.UseClipping = false;
+                    }
+                    else
+                    {
+                        cam.camera.UseClipping = true;
+                        cam.camera.ClipPlane = new Plane(Vector3.Up, new Vector3(10,SectionPlan,10));
+                        plan.planeNode.Position = new Vector3(plan.planeNode.Position.X, SectionPlan, plan.planeNode.Position.Z) ;
                     }
                 }
-
-                if (Context.Input.GetMouseButtonClick(Urho3DNet.MouseButton.MousebRight))
-                {
-                    if (Selection.SelectedModel != null)
-                    {
-                        uiMenu.ActionMenu = menuaction.ObjectContext;
-                    }
-                }
-
-                if (ImGuiNet.ImGui.Button("Message"))
-                {
-                    //  string imp = system.LoadFile("Json|*.json");
-                    var imp = system.LoadFiles("Json|*.json");
-                    //if (string.IsNullOrEmpty(imp)) return;
-
-                    if (imp == null) return;
-                    var jsonFiles = imp.ToList();
-                    DrawGeometryFromRevit(jsonFiles);
-                }
-                if (ImGuiNet.ImGui.Button("Generate Boxes"))
-                {
-                    new Rbfx_RandomBoxes(RootNode);
-                }
-
                 if (ImGuiNet.ImGui.Button("Remove All Boxes"))
                 {
                     while (true)
@@ -252,162 +261,29 @@ namespace EngineViewer
                         nodes.Remove();
                     }
                 }
-                if (ImGuiNet.ImGui.SliderFloat("Depth", depth, 0, 1000))
-                {
-                    if (testnode != null)
-                    {
-                        testnode.Position = new Vector3(0, 0, depth[0]);
-                    }
-                }
-                if (ImGuiNet.ImGui.SliderFloat("CameraFarclip", camdepth, 0, 2000))
-                {
-                     
-                        cam.camera.FarClip = camdepth[0];
-                     
-                }
+
 
                 if (ImGuiNet.ImGui.Button("Draw"))
                 {
-                    testnode = new Draw().DrawRectangle();
+                    var geo = new Draw().DrawRectangle();
+                    new Import.Revit.Import().fromXML(RootNode, geo);
                 }
                 DisplayInfoText(hoverselected);
             });
         }
-        Node testnode = null;
+
+       
+
         public void DrawGeometryFromRevit(List<string> jsonFiles)
         {
             foreach (var jsonFilePath in jsonFiles)
             {
                 var geo = new Serializable.Engine_Geometry().JDeserializemyData(System.IO.File.ReadAllText(jsonFilePath));
                 geo.FileName = jsonFilePath;
-                CreateCustomShape2(geo);
+                new Import.Revit.Import().fromXML(RootNode, geo);
             }
         }
 
-        public Node CreateCustomShape2(Serializable.Engine_Geometry geom)
-        {
-            Logger.Log($"Generating Geometry [{geom.Name}]");
-
-            if (geom.Engine_Faces.Count == 0)
-            {
-                Logger.Log($"Geometry: [{geom.Name}] has no faces", "", Logger.ErrorType.Warrning);
-                return null;
-            }
-
-            var geonode = RootNode.CreateChild(geom.Name);
-            
-            geonode.Scale(geom.Flip.ToVec3());
-            if (geom.Rotation != null)
-                geonode.Rotate(new Quaternion(geom.Rotation.ToVec3()));
-            float scaleValue = (float)DynConstants.FeettoMeter;
-            geonode.Scale(new Vector3(scaleValue, scaleValue, scaleValue));
-
-            geom.GenerateNormals();
-            if (!geom.GenerateTangents())
-            {
-                var failChild = geonode.CreateChild($"{geom.Name} Failed");
-                failChild.Position = geom.Position.ToVec3();
-                var model = Cache.GetResource<Model>("Models/Box.mdl");
-                var stcomp = failChild.CreateComponent<StaticModel>();
-                stcomp.SetModel(model);
-                return null;
-            }
-
-            var faceColorGroups = geom.Engine_Faces.GroupBy(o => o.FaceColor.ToString());
-            string dir = System.IO.Path.GetDirectoryName(geom.FileName);
-
-            var files = System.IO.Directory.GetFiles(dir).ToList();
-            int index = 0;
-            foreach (var faceColorGroup in faceColorGroups)
-            {
-                var facechild = geonode.CreateChild($"{geom.Name}: {index}");
-                index++;
-
-                Material mat = null;
-
-                var faceColor = faceColorGroup.ElementAt(0).FaceColor;
-
-                if (faceColor.L != 1)
-                {
-                    mat = Material_Ext.TransParentMaterial(faceColor.ToColor());
-                }
-                else
-                {
-                    mat = Material_Ext.ColoredMaterial(faceColor.ToColor());
-                }
-                mat.CullMode = geom.GeoCullModel;
-#if false
-                var faceColor = faceColorGroup.ElementAt(0).FaceColor.ToColor();
-
-                // mat = RootNode.Context.Cache.GetResource<Material>("Materials/Stone.xml");
-                if (!files.Any(o => o.Contains(faceColor.ToString())))
-                {
-                    if (faceColor.ToVector4().W != 1)
-                    {
-                        mat = Material_Ext.TransParentMaterial(faceColor);
-                    }
-                    else
-                    {
-                        mat = Material_Ext.ColoredMaterial(faceColor);
-                    }
-                    mat.CullMode = geom.GeoCullModel;
-
-                    var isSaved = mat.SaveFile(dir + "\\" + mat.Name);
-                }
-
-                mat = Cache.GetResource<Material>(dir + "\\" + faceColor.ToString() + ".xml");
-#endif
-
-                var cus = facechild.CreateComponent<CustomNodeComponent>();
-                cus.OriginalMaterial = mat;
-
-                var cusGeo = facechild.CreateComponent<CustomGeometry>();
-                cusGeo.SetMaterial(mat);
-                cusGeo.CastShadows = true;
-
-                cusGeo.BeginGeometry(0, PrimitiveType.TriangleList);
-
-                Logger.Log("Begin Geometry");
-                List<Vector3> vcs = new List<Vector3>();
-                foreach (var face in faceColorGroup)
-                {
-                    var triangles = face.EngTriangles;
-                    var trianglesCount = face.EngTriangles.Count;
-                    for (int triIndex = 0; triIndex < trianglesCount; triIndex++)
-                    {
-                        var triangle = triangles[triIndex];
-                        var triPoints = triangle.GetPoints();
-                        foreach (var engpoint in triPoints)
-                        {
-                            cusGeo.DefineVertex(engpoint.EngPosition.ToVec3());
-                            cusGeo.DefineNormal(engpoint.EngNormal.ToVec3());
-                            cusGeo.DefineTexCoord(engpoint.EngTexture.ToVec2());
-                            cusGeo.DefineTangent(engpoint.EngTangent.ToVec4());
-                            vcs.Add(engpoint.EngPosition.ToVec3());
-                        }
-                    }
-                }
-                cusGeo.Commit();
-                var bbx = new BoundingBox(vcs.ToArray());
-                cusGeo.WorldBoundingBox.Define(bbx);
-                Logger.Log("End Geometry");
-            }
-            return geonode;
-        }
-
-        //todo: I couldn't use less vertices against Indices
-        //todo: looping numbers in C# leaks!!
-        //todo: light is not passing through transparent objects
-        //todo: SetunPackVertex
-        //todo: Generate Tangent i would prefer omitting position and normal, as they are must by all means. and will always equalls to 3+3
-        //todo: Saving material that is not previously saved on HDD outputs nothing. must be saved 1st then save scene.
-
-        //todo: how to set material Ids, meaning A window have a glass and metal frame, probably wood in your place, do I have to create separate geometries per materials, or I can combine all faces, and then define material faces.
-        //todo: Camera Range is not enlarged
-        //todo: how to close a poppedup imgui when clicking outside
-
-        //issue:
-        //todo: Saving Material must be mat.SetShaderParameter("MatDiffColor", color.ToVector4())
 
         private Window infowindow = null;
 
@@ -427,7 +303,6 @@ namespace EngineViewer
             infotext.Name = "InfoText";
             infotext.SetColor(Color.Green);
             infotext.SetFont("ARLRDBD.TTF", 12);
-            
         }
 
         private void DisplayInfoText(Drawable hoverselected)

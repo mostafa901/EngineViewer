@@ -27,8 +27,8 @@ namespace EngineViewer.Actions._3D.RbfxUtility
         public static Material TransParentMaterial(Color color)
         {
             var mat = new Material(DefaultScene.Instance.Context);
-            mat.SetTechnique(0, mat.Cache.GetResource<Technique>("Techniques/NoTextureAlpha.xml"));
-            mat.SetShaderParameter("MatDiffColor", color);
+            mat.SetTechnique(0, mat.Context.Cache.GetResource<Technique>("Techniques/NoTextureAlpha.xml"));
+            mat.SetShaderParameter("MatDiffColor", color.ToVector4());
             mat.SetShaderParameter("MatSpecColor", new Vector4(1, 1, 1, 32));
             mat.Name ="Materials/"+ color.ToString() + ".xml";
 

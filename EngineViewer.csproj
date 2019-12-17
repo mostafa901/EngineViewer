@@ -85,6 +85,7 @@
     <Compile Include="3D\Utility\Node_Ext.cs" />
     <Compile Include="3D\Utility\Rbfx_Utility.cs" />
     <Compile Include="Engn_Scene.cs" />
+    <Compile Include="Import\Revit\Import.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -188,6 +189,9 @@
       <Link>Import\AssetImporter_Win64.exe</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="TextFile1.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

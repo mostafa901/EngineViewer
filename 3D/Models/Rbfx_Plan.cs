@@ -17,7 +17,7 @@ namespace EngineViewer.Actions._3D.Models
 			// Create scene node & StaticModel component for showing a static plane
 			planeNode = scene.CreateChild("Plane");
 			planeNode.SetScale(new Vector3(100, 1, 100));
-            planeNode.Rotate(new Quaternion(90));
+            planeNode.Rotate(new Quaternion(0));
 			plane = planeNode.CreateComponent<StaticModel>();
 			plane.SetModel(scene.Context.Cache.GetResource<Urho3DNet.Model>("Models/Plane.mdl"));
 			plane.SetMaterial(scene.Context.Cache.GetResource<Material>("Materials/StoneTiled.xml"));			

@@ -94,7 +94,7 @@ namespace EngineViewer.Actions._3D.UI
 
                             if (ImGui.BeginMenu("CullMode"))
                             {
-                             var cusnode =   Selection.SelectedModel.Node.GetComponent<CustomNodeComponent>(true);
+                                var cusnode = Selection.SelectedModel.Node.GetComponent<CustomNodeComponent>(true);
                                 var mat = cusnode.OriginalMaterial;
                                 if (ImGui.MenuItem("Ccw"))
                                 {
@@ -157,11 +157,11 @@ namespace EngineViewer.Actions._3D.UI
                             if (ImGui.Button("Debug Renderer"))
                             {
                                 var debugrend = Selection.SelectedModel.Scene.GetComponent<DebugRenderer>();
-                                Selection.SelectedModel.Node.Renderer.DrawDebugGeometry(true);
+                                Selection.SelectedModel.Node.Context. Renderer.DrawDebugGeometry(true);
                                 Selection.SelectedModel = null;
                                 ActionMenu = menuaction.none;
                             }
-                            if (ImGui.Button("Cancel"))
+                            if (!ImGui.IsAnyItemHovered() && Selection.SelectedModel.Context.Input.GetMouseButtonPress(MouseButton.MousebLeft))
                             {
                                 Selection.SelectedModel = null;
                                 ActionMenu = menuaction.none;

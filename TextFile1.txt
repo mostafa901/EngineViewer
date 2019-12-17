@@ -2,11 +2,11 @@
         todo: looping numbers in C# leaks!!
         todo: light is not passing through transparent objects
         todo: SetunPackVertex
-        todo: Generate Tangent i would prefer omitting position and normal, as they are must by all means. and will always equalls to 3+3
+        
 
         todo: how to set material Ids, meaning A window have a glass and metal frame, probably wood in your place, do I have to create separate geometries per materials, or I can combine all faces, and then define material faces.
          
-        todo: how to close a poppedup imgui when clicking outside
+      
         todo: understand how the savedsceen translation of geometrydata works. so maybe we can expedite writing it instead of a very long engine_Geometry class.
 
         ****************

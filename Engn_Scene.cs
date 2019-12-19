@@ -8,10 +8,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Urho3DNet;
-using Utility.Constant;
 using Utility.IO;
 using static EngineViewer.Actions._3D.UI.UIMenu;
-using Logger = Shared_Utility.Logger.Logger;
 
 namespace EngineViewer
 {
@@ -46,7 +44,8 @@ namespace EngineViewer
         public static DefaultScene Instance;
         public Node RootNode;
         public UIMenu uiMenu;
-
+        List<Vector3> currentPath = new List<Vector3>();
+        bool debugmode = false;
         public DefaultScene(Context context) : base(context)
         {
             Instance = this;
@@ -145,6 +144,14 @@ namespace EngineViewer
 
             SetupInfoWindow();
         }
+        void setupNavigation()
+        {
+            var navmesh = scene.GetOrCreateComponent(nameof(NavigationMesh), CreateMode.Local) as NavigationMesh;
+            RootNode.GetOrCreateComponent(nameof(Navigable), CreateMode.Local);
+
+            navmesh.Padding = new Vector3(0, 10, 0);            
+            navmesh.Build();
+        }
 
         private void SetupLight()
         {
@@ -155,7 +162,7 @@ namespace EngineViewer
             l.Range = 200f;
             lightNode.LookAt(Vector3.Zero);
             l.LightType = LightType.LightPoint;
-            l.CastShadows = true;
+            l.CastShadows = false;
             l.ShadowBias = new BiasParameters(0.00025f, 0.5f);
             // Set cascade splits at 10, 50 and 200 world units, fade shadows out at 80% of maximum shadow distance
             l.ShadowCascade = new CascadeParameters(10.0f, 50.0f, 200.0f, 0.0f, 0.8f);
@@ -173,84 +180,124 @@ namespace EngineViewer
             Context.Renderer.SetViewport(0, viewport);
         }
 
+        Vector3 mouseStart = new Vector3();
+        Vector3 mouseEnd = new Vector3();
+
         private void SubscribeEvents()
         {
-            float SectionPlan = 0;
+            float SectionPlan = 10;
             var plan = new Engn_Plan(scene);
+            plan.planeNode.Position = new Vector3(plan.planeNode.Position.X, SectionPlan, plan.planeNode.Position.Z);
+            // var mat = Material_Ext.ColoredMaterial(new Color(1, 211 / 255f, 11 / 255f, .2f));
+            var mat = Material_Ext.ColoredMaterial(Color.Yellow);
+            mat.FillMode = FillMode.FillWireframe;
+            plan.plane.SetMaterial(mat);
+            Vector3 direction = new Vector3(0, -1, 0);
 
             SubscribeToEvent(E.Update, args =>
             {
-            float moveSpeed = 5;
-            uiMenu.RenderMenu();
 
-            //what to do if selection is nothing
-            onUnSelect();
-
-            //camera movement
-            if (Context.Input.GetKeyPress(Key.KeyShift)) moveSpeed *= .5f;
-            cam.FirstPersonCamera(this, Context.Time.TimeStep, moveSpeed, Selection?.SelectedModel);
-
-            //CheckSelection
-            Drawable hoverselected = null;
-            if (uiMenu.ActionMenu == menuaction.none)
-            {
-                hoverselected = Selection.SelectGeometry(this, scene, cam);
-                uiMenu.Selection = Selection;
-                uiMenu.RootNode = RootNode;
-            }
-
-            if (Context.Input.GetMouseButtonPress(Urho3DNet.MouseButton.MousebLeft))
-            {
-                touraroundboxes(Selection.SelectedModel);
-            }
-
-            //invoke any actions in the list
-            if (Actions.Count > 0)
-            {
-                var runningActions = Actions.ToList();
-                Actions.Clear();
-                for (int i = 0; i < runningActions.Count; i++)
+                if (debugmode)
                 {
-                    runningActions[i].Invoke();
-                }
-            }
+                    Context.Renderer.DrawDebugGeometry(false);
+                    if (currentPath.Count > 0)
+                    {
+                        // Visualize the current calculated path
+                        DebugRenderer debug = scene.GetComponent<DebugRenderer>();
+                        debug.AddBoundingBox(new BoundingBox(mouseEnd - new Vector3(0.1f, 0.1f, 0.1f), mouseStart + new Vector3(0.1f, 0.1f, 0.1f)),
+                            new Color(1.0f, 1.0f, 1.0f), true);
 
-            if (Context.Input.GetMouseButtonClick(Urho3DNet.MouseButton.MousebRight))
-            {
-                if (Selection.SelectedModel != null)
+                        // Draw the path with a small upward bias so that it does not clip into the surfaces
+                        Vector3 bias = new Vector3(0.0f, 0.05f, 0.0f);
+                        debug.AddLine(mouseStart + bias, currentPath[0] + bias, new Color(1.0f, 1.0f, 1.0f), true);
+
+                        if (currentPath.Count > 1)
+                        {
+                            for (int i = 0; i < currentPath.Count - 1; ++i)
+                                debug.AddLine(currentPath[i] + bias, currentPath[i + 1] + bias, new Color(1.0f, 1.0f, 1.0f), true);
+                        }
+                    }
+                }
+
+                float moveSpeed = 5;
+                uiMenu.RenderMenu();
+
+                //what to do if selection is nothing
+                onUnSelect();
+
+                //camera movement
+                if (Context.Input.GetKeyPress(Key.KeyShift)) moveSpeed *= .5f;
+                cam.FirstPersonCamera(this, Context.Time.TimeStep, moveSpeed, Selection?.SelectedModel);
+
+                //CheckSelection
+                Drawable hoverselected = null;
+                if (uiMenu.ActionMenu == menuaction.none)
                 {
-                    uiMenu.ActionMenu = menuaction.ObjectContext;
+                    hoverselected = Selection.SelectGeometry(this, scene, cam);
+                    uiMenu.Selection = Selection;
+                    uiMenu.RootNode = RootNode;
                 }
-            }
 
-            if (ImGuiNet.ImGui.Button("Message"))
-            {
-                //  string imp = system.LoadFile("Json|*.json");
-                var imp = system.LoadFiles("Json|*.json");
-                //if (string.IsNullOrEmpty(imp)) return;
 
-                if (imp == null) return;
-                var jsonFiles = imp.ToList();
-                DrawGeometryFromRevit(jsonFiles);
-            }
-            if (ImGuiNet.ImGui.Button("Generate Boxes"))
-            {
-                new Rbfx_RandomBoxes(RootNode);
-            }
+                if (Context.Input.GetMouseButtonDown(MouseButton.MousebLeft))
+                {
+                    if (mouseStart == null)
+                    {
+                        var mousepose = Context.Input.MousePosition;
+                        var drawable = Selection.SelectGeometry(this, scene, cam);
+                        if (hoverselected != null)
+                        {
+                            if (mouseStart != new Vector3()) mouseEnd = Selection.HitPosition;
+                            if (mouseStart == new Vector3()) mouseStart = Selection.HitPosition;
+                        }
+                    }
+                }
 
-                if (ImGuiNet.ImGui.SliderFloat("SectionPlan depth", ref SectionPlan, 0, 5))
+                if (Context.Input.GetMouseButtonPress(Urho3DNet.MouseButton.MousebLeft))
+                {
+                    touraroundboxes(Selection.SelectedModel);
+                }
+
+                //invoke any actions in the list
+                if (Actions.Count > 0)
+                {
+                    var runningActions = Actions.ToList();
+                    Actions.Clear();
+                    for (int i = 0; i < runningActions.Count; i++)
+                    {
+                        runningActions[i].Invoke();
+                    }
+                }
+
+                if (Context.Input.GetMouseButtonClick(Urho3DNet.MouseButton.MousebRight))
+                {
+                    if (Selection.SelectedModel != null)
+                    {
+                        uiMenu.ActionMenu = menuaction.ObjectContext;
+                    }
+                }
+
+                if (ImGuiNet.ImGui.Button("Message"))
+                {
+                    var imp = system.LoadFiles("Json|*.json");
+
+                    if (imp == null) return;
+                    var jsonFiles = imp.ToList();
+                    DrawGeometryFromRevit(jsonFiles);
+                }
+
+                if (ImGuiNet.ImGui.Button("Generate Boxes"))
+                {
+                    new Rbfx_RandomBoxes(RootNode);
+                }
+
+                if (ImGuiNet.ImGui.SliderFloat("SectionPlan depth", ref SectionPlan, -20, 20))
                 {
                     var depth = SectionPlan;
-                    if (depth == 0)
-                    {
-                        cam.camera.UseClipping = false;
-                    }
-                    else
-                    {
-                        cam.camera.UseClipping = true;
-                        cam.camera.ClipPlane = new Plane(Vector3.Up, new Vector3(10,SectionPlan,10));
-                        plan.planeNode.Position = new Vector3(plan.planeNode.Position.X, SectionPlan, plan.planeNode.Position.Z) ;
-                    }
+
+                    cam.camera.UseClipping = true;
+                    cam.camera.ClipPlane = new Plane(direction, new Vector3(1, SectionPlan, 1));
+                    plan.planeNode.Position = new Vector3(plan.planeNode.Position.X, SectionPlan + direction.Y * 0.005f, plan.planeNode.Position.Z);
                 }
                 if (ImGuiNet.ImGui.Button("Remove All Boxes"))
                 {
@@ -262,7 +309,6 @@ namespace EngineViewer
                     }
                 }
 
-
                 if (ImGuiNet.ImGui.Button("Draw"))
                 {
                     var geo = new Draw().DrawRectangle();
@@ -271,8 +317,6 @@ namespace EngineViewer
                 DisplayInfoText(hoverselected);
             });
         }
-
-       
 
         public void DrawGeometryFromRevit(List<string> jsonFiles)
         {
@@ -283,7 +327,6 @@ namespace EngineViewer
                 new Import.Revit.Import().fromXML(RootNode, geo);
             }
         }
-
 
         private Window infowindow = null;
 

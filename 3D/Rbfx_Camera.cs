@@ -19,7 +19,7 @@ namespace EngineViewer.Actions._3D.RbfxUtility
 
             camera = CameraNode.CreateComponent<Camera>();
             camera.UseClipping = false;
-             camera.FarClip = 1000; 
+            camera.FarClip = 1000;
         }
 
 
@@ -66,19 +66,11 @@ namespace EngineViewer.Actions._3D.RbfxUtility
                 if (camera.Context.Input.GetKeyDown(Key.KeyShift))
                 {
                     //todo: not working correctly
-                    var ray = camera.GetScreenRay((float)camera.Context.Graphics.Width / 2, (float)camera.Context .Graphics.Height / 2);
-
-                    CameraNode.RotateAround(ray.Origin, new Quaternion(0, mouseMove.X, 0), TransformSpace.TsWorld);
-                    Pitch = Urho3DNet.MathDefs.Clamp(CameraNode.Rotation.PitchAngle, -90, 90);
-
-                    CameraNode.Rotation = new Quaternion(Pitch, CameraNode.Rotation.YawAngle, 0);
-
-                    CameraNode.SetDirection(Selected.WorldBoundingBox.Center - CameraNode.Position);
+                    var ray = camera.GetScreenRay((float)camera.Context.Graphics.Width / 2, (float)camera.Context.Graphics.Height / 2);
                 }
-                else
-                {
-                    CameraNode.Translate(new Vector3(-mouseMove.X, mouseMove.Y, 0) * moveSpeed * timeStep);
-                }
+
+                CameraNode.Translate(new Vector3(-mouseMove.X, mouseMove.Y, 0) * moveSpeed * timeStep);
+
 
                 if (Selected != null) CameraNode.LookAt(Selected.WorldBoundingBox.Center);
 

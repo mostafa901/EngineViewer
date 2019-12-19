@@ -1,6 +1,7 @@
 ﻿using EngineViewer.Actions._3D.Models;
 using EngineViewer.Actions._3D.RbfxUtility;
 using ImGuiNet;
+using System.Collections.Generic;
 using Urho3DNet;
 
 namespace EngineViewer.Actions._3D.UI
@@ -9,7 +10,12 @@ namespace EngineViewer.Actions._3D.UI
     {
         private Material Originalmat;
         public Drawable SelectedModel;
-
+        public List<Drawable> VoidableSelection;
+        public Vector3 HitPosition;
+        public Engn_Selection()
+        {
+            VoidableSelection = new List<Drawable>();
+        }
         public Drawable SelectGeometry(Application app, Scene scene, Engn_Camera cam)
         {
             if (app.Context.UI.Cursor.IsVisible())
@@ -18,11 +24,11 @@ namespace EngineViewer.Actions._3D.UI
                 { 
                     return null;
                 }
+
                 //Select element
-                Vector3 hitposition;
                 Drawable model;
 
-                Rbfx_Utility.Raycast(scene, cam, float.MaxValue, out hitposition, out model);
+                Rbfx_Utility.Raycast(scene, cam, float.MaxValue, out HitPosition, out model);
                 if (app.Context.Input.GetMouseButtonPress(MouseButton.MousebLeft))
                 {
                     HiLightSelected(model);

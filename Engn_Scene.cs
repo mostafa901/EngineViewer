@@ -44,8 +44,9 @@ namespace EngineViewer
         public static DefaultScene Instance;
         public Node RootNode;
         public UIMenu uiMenu;
-        List<Vector3> currentPath = new List<Vector3>();
-        bool debugmode = false;
+        private List<Vector3> currentPath = new List<Vector3>();
+        private bool debugmode = false;
+
         public DefaultScene(Context context) : base(context)
         {
             Instance = this;
@@ -98,6 +99,7 @@ namespace EngineViewer
             //SetupResources Location
 
             Context.Cache.AddResourceDir(@"c:\windows\fonts");
+            Context.Cache.AddResourceDir(@"D:\Program sources\grafic\plugins\fonts");
             Context.Cache.AddResourceDir(@"D:\Revit_API\Downloaded_Library\Source\rbfx\bin\CoreData");
             Context.UI.Cursor = new Urho3DNet.Cursor(Context);
         }
@@ -136,6 +138,7 @@ namespace EngineViewer
             eng_Zone.Rbfx_Zone.FogStart = 100f;
 
             new Engn_WirePlan(scene);
+            
             SetupLight();
 
             RootNode = scene.CreateChild("root");
@@ -144,12 +147,13 @@ namespace EngineViewer
 
             SetupInfoWindow();
         }
-        void setupNavigation()
+
+        private void setupNavigation()
         {
             var navmesh = scene.GetOrCreateComponent(nameof(NavigationMesh), CreateMode.Local) as NavigationMesh;
             RootNode.GetOrCreateComponent(nameof(Navigable), CreateMode.Local);
 
-            navmesh.Padding = new Vector3(0, 10, 0);            
+            navmesh.Padding = new Vector3(0, 10, 0);
             navmesh.Build();
         }
 
@@ -180,22 +184,28 @@ namespace EngineViewer
             Context.Renderer.SetViewport(0, viewport);
         }
 
-        Vector3 mouseStart = new Vector3();
-        Vector3 mouseEnd = new Vector3();
+        private Vector3 mouseStart = new Vector3();
+        private Vector3 mouseEnd = new Vector3();
 
         private void SubscribeEvents()
         {
             float SectionPlan = 10;
             var plan = new Engn_Plan(scene);
+            plan.PropertiesComp.CanBeSelected = false;
             plan.planeNode.Position = new Vector3(plan.planeNode.Position.X, SectionPlan, plan.planeNode.Position.Z);
             // var mat = Material_Ext.ColoredMaterial(new Color(1, 211 / 255f, 11 / 255f, .2f));
             var mat = Material_Ext.ColoredMaterial(Color.Yellow);
             mat.FillMode = FillMode.FillWireframe;
             plan.plane.SetMaterial(mat);
             Vector3 direction = new Vector3(0, -1, 0);
-
+            Selection.VoidableSelection.Add(plan.plane);
             SubscribeToEvent(E.Update, args =>
             {
+                if (Context.Input.GetKeyPress(Key.KeyEscape))
+                {
+                    Selection.HiLightSelected(null);
+                    Selection.SelectedModel = null;
+                }
 
                 if (debugmode)
                 {
@@ -237,7 +247,6 @@ namespace EngineViewer
                     uiMenu.Selection = Selection;
                     uiMenu.RootNode = RootNode;
                 }
-
 
                 if (Context.Input.GetMouseButtonDown(MouseButton.MousebLeft))
                 {
@@ -337,7 +346,7 @@ namespace EngineViewer
             // Set Window size and layout settings
             infowindow.MinSize = new IntVector2(50, 20);
             infowindow.SetLayout(LayoutMode.LmVertical, 6, new IntRect(6, 6, 6, 6));
-            infowindow.SetAlignment(Urho3DNet.HorizontalAlignment.HaLeft, Urho3DNet.VerticalAlignment.VaTop);
+            infowindow.SetAlignment(HorizontalAlignment.HaLeft, VerticalAlignment.VaTop);
             infowindow.SetColor(new Color(.28f, .28f, .28f, .28f));
             infowindow.Name = "Window";
             infowindow.SetVisible(false);

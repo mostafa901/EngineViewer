@@ -336,7 +336,7 @@ namespace EngineViewer.Serializable
             }
         }
 
-        internal bool GenerateTangents()
+         internal bool GenerateTangents()
         {
             Logger.Log("Generating Tangents");
             UseLargeIndex = true;
@@ -350,7 +350,17 @@ namespace EngineViewer.Serializable
                 return false;
             }
 
-            Urho3D.GenerateTangents(vbPoints, vbSize, IndexData, IndexSize(), 0, IndexData.Length, tangentPosition);
+            unsafe
+            {
+                fixed (float* vsIntPtr = vbPoints)
+                {
+                    fixed (int* indxPtr = IndexData)
+                    {
+
+                        Urho3D.GenerateTangents((IntPtr)vsIntPtr, (uint)vbSize, (IntPtr)indxPtr, (uint)IndexSize(), 0, (uint)IndexData.Length, 3 * sizeof(float), 6 * sizeof(float), (uint)tangentPosition * sizeof(float));
+                    }
+                } 
+            }
 
             var ps = vbPoints.ToList();
             var facescount = Engine_Faces.Count;

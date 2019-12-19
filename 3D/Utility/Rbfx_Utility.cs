@@ -27,12 +27,16 @@ namespace EngineViewer.Actions._3D.RbfxUtility
                 hitDrawable = result.Drawable;
                 if (hitDrawable != null)
                 {
-                    if (hitDrawable.Node.GetComponent<WirePlan>() != null)
+                    var comp = hitDrawable.Node.GetComponent<CustomNodeComponent>();
+                    if (comp != null)
                     {
-                        hitDrawable = null;
-                        continue;
+                        if (!comp.CanBeSelected)
+                        {
+                            hitDrawable = null;
+                            continue;
+                        }
                     }
-                } 
+                }
                 hitPos = result.Position;
                 return true;
             }
@@ -40,6 +44,7 @@ namespace EngineViewer.Actions._3D.RbfxUtility
             return false;
         }
 
+#if false
         public static void PaintDecal(Application app, Scene scene, Engn_Camera cam)
         {
             Vector3 hitPos;
@@ -79,6 +84,7 @@ namespace EngineViewer.Actions._3D.RbfxUtility
                         0.1f, //normalCutoff
                         uint.MaxValue);
             }
-        }
+        } 
+#endif
     }
 }

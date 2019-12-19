@@ -34,7 +34,9 @@ namespace EngineViewer.Actions._3D.RbfxUtility
 		{
 			Notes = "testing";
             SetTemporary(true);
-		} 
+		}
+
+        public bool CanBeSelected = true;
 
         [SerializeField]
 		public Vector3 OriginalPosition { get; set; } = new Vector3();

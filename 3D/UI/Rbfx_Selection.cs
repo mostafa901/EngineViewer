@@ -49,7 +49,7 @@ namespace EngineViewer.Actions._3D.UI
             Originalmat = mat;
         }
 
-        private Drawable HiLightSelected(Drawable model)
+        public Drawable HiLightSelected(Drawable model)
         {
             if (SelectedModel != null)
             {

@@ -80,7 +80,7 @@ namespace EngineViewer.Actions._3D
             return modelnode;
         }
 
-        internal static void SaveAsset(Scene scene)
+        internal static void SaveAsset(Node scene)
         {
             string path = "";
             Dispatcher.CurrentDispatcher.Invoke(() =>

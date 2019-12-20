@@ -34,7 +34,8 @@ namespace EngineViewer.Actions._3D.RbfxUtility
 
             return mat;
         }
-
+        
+        //todo: Saving Material must be mat.SetShaderParameter("MatDiffColor", color.ToVector4())
         public static Material ColoredMaterial(Color color)
         {
             var mat = DefaultScene.scene.Context.Cache.GetResource<Material>("Materials/Colored.xml").Clone();

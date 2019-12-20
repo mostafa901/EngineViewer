@@ -20,6 +20,7 @@ namespace EngineViewer.Actions._3D.RbfxUtility
 
             var query = new RayOctreeQuery(results, ray, RayQueryLevel.RayTriangle, maxDistance, DrawableFlags.DrawableGeometry);
             oct.Raycast(query);
+             
 
             for (int i = 0; i < results.Count; i++)
             {

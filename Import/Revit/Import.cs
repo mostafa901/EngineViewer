@@ -48,6 +48,8 @@ namespace EngineViewer.Import.Revit
             int index = 0;
             foreach (var faceColorGroup in faceColorGroups)
             {
+            //todo: not sure which is better, Create one Node with multiple geometries with multi MaterialIds
+            //todo: OR Create multiple Nodes with a single geometry with a single MaterialIds
                 var facechild = geonode.CreateChild($"{geom.Name}: {index}");
                 index++;
 

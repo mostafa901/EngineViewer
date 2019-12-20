@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 using Urho3DNet;
 using Utility.IO;
 using static EngineViewer.Actions._3D.UI.UIMenu;
@@ -138,7 +139,7 @@ namespace EngineViewer
             eng_Zone.Rbfx_Zone.FogStart = 100f;
 
             new Engn_WirePlan(scene);
-            
+
             SetupLight();
 
             RootNode = scene.CreateChild("root");
@@ -286,7 +287,7 @@ namespace EngineViewer
                     }
                 }
 
-                if (ImGuiNet.ImGui.Button("Message"))
+                if (ImGuiNet.ImGui.Button("Import from Revit"))
                 {
                     var imp = system.LoadFiles("Json|*.json");
 
@@ -317,6 +318,15 @@ namespace EngineViewer
                         nodes.Remove();
                     }
                 }
+                if (ImGuiNet.ImGui.Button(Selection.ShowListOfGeometries ? "Hide List" : "Show List"))
+                {
+                    Selection.ShowListOfGeometries = !Selection.ShowListOfGeometries;
+
+                    //Selection.ShowGeometryList(scene);
+                    Selection.ShowGeometryViewList(scene);
+
+
+                }
 
                 if (ImGuiNet.ImGui.Button("Draw"))
                 {
@@ -329,6 +339,8 @@ namespace EngineViewer
 
         public void DrawGeometryFromRevit(List<string> jsonFiles)
         {
+            //todo: add progress window running on windows dispatcher not engine
+
             foreach (var jsonFilePath in jsonFiles)
             {
                 var geo = new Serializable.Engine_Geometry().JDeserializemyData(System.IO.File.ReadAllText(jsonFilePath));

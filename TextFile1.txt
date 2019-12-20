@@ -2,12 +2,9 @@
         todo: looping numbers in C# leaks!!
         todo: light is not passing through transparent objects
         todo: SetunPackVertex
-        
-
-        todo: how to set material Ids, meaning A window have a glass and metal frame, probably wood in your place, do I have to create separate geometries per materials, or I can combine all faces, and then define material faces.
-         
+        todo: 
       
-        todo: understand how the savedsceen translation of geometrydata works. so maybe we can expedite writing it instead of a very long engine_Geometry class.
+        todo: understand how the saved scene translation of geometry data works. so maybe we can expedite writing it instead of a very long engine_Geometry class.
 
         ****************
         things to remember:
@@ -24,6 +21,4 @@
         ---------
         Saving material that is not previously saved on HDD outputs nothing. must be saved 1st then save scene.
         
-        issues:
-        ------
-        todo: Saving Material must be mat.SetShaderParameter("MatDiffColor", color.ToVector4())
+         

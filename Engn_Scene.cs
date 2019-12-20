@@ -169,6 +169,7 @@ namespace EngineViewer
             l.LightType = LightType.LightPoint;
             l.CastShadows = false;
             l.ShadowBias = new BiasParameters(0.00025f, 0.5f);
+
             // Set cascade splits at 10, 50 and 200 world units, fade shadows out at 80% of maximum shadow distance
             l.ShadowCascade = new CascadeParameters(10.0f, 50.0f, 200.0f, 0.0f, 0.8f);
         }
@@ -233,9 +234,6 @@ namespace EngineViewer
                 float moveSpeed = 5;
                 uiMenu.RenderMenu();
 
-                //what to do if selection is nothing
-                onUnSelect();
-
                 //camera movement
                 if (Context.Input.GetKeyPress(Key.KeyShift)) moveSpeed *= .5f;
                 cam.FirstPersonCamera(this, Context.Time.TimeStep, moveSpeed, Selection?.SelectedModel);
@@ -255,9 +253,13 @@ namespace EngineViewer
                     {
                         var mousepose = Context.Input.MousePosition;
                         var drawable = Selection.SelectGeometry(this, scene, cam);
-                        if (hoverselected != null)
+                        if (drawable != null)
                         {
-                            if (mouseStart != new Vector3()) mouseEnd = Selection.HitPosition;
+                            if (mouseStart != new Vector3())
+                            {
+                                mouseEnd = Selection.HitPosition;
+                                DrawPath();
+                            }
                             if (mouseStart == new Vector3()) mouseStart = Selection.HitPosition;
                         }
                     }
@@ -303,8 +305,6 @@ namespace EngineViewer
 
                 if (ImGuiNet.ImGui.SliderFloat("SectionPlan depth", ref SectionPlan, -20, 20))
                 {
-                    var depth = SectionPlan;
-
                     cam.camera.UseClipping = true;
                     cam.camera.ClipPlane = new Plane(direction, new Vector3(1, SectionPlan, 1));
                     plan.planeNode.Position = new Vector3(plan.planeNode.Position.X, SectionPlan + direction.Y * 0.005f, plan.planeNode.Position.Z);
@@ -324,8 +324,6 @@ namespace EngineViewer
 
                     //Selection.ShowGeometryList(scene);
                     Selection.ShowGeometryViewList(scene);
-
-
                 }
 
                 if (ImGuiNet.ImGui.Button("Draw"))
@@ -335,6 +333,33 @@ namespace EngineViewer
                 }
                 DisplayInfoText(hoverselected);
             });
+        }
+
+        private void DrawPath()
+        {
+            var navMesh = scene.GetComponent<NavigationMesh>();
+            Vector3 hitPos;
+            Drawable hitDrawable;
+            if (Rbfx_Utility.Raycast(scene, cam, 250f, out hitPos, out hitDrawable))
+            {
+                Vector3 pathPos = navMesh.FindNearestPoint(hitPos, new Vector3(1.0f, 1.0f, 1.0f));
+
+                
+                //if (Context.Input.GetQualifierDown(Qualifier.QualShift))
+                //{
+                //    // Teleport
+                //    currentPath.Clear();
+                //    jackNode.LookAt(new Vector3(pathPos.X, jackNode.Position.Y, pathPos.Z), Vector3.UnitY, TransformSpace.World);
+                //    jackNode.Position = (pathPos);
+                //}
+                //else
+                {
+                    // Calculate path from Jack's current position to the end point
+                   //mouseEnd = pathPos;
+                    var result = navMesh.wal.FindPath(hitPos, pathPos);
+                    currentPath = new List<Vector3>(result);
+                }
+            }
         }
 
         public void DrawGeometryFromRevit(List<string> jsonFiles)
